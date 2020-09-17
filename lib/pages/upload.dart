@@ -74,48 +74,46 @@ class _UploadState extends State<Upload>
     );
   }
 
-  Container buildSplashScreen() {
-    return Container(
-      color: Theme.of(context).accentColor.withOpacity(0.6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Row(
-                //ROW 1
-                children: [
-                  Container(
-                    child: TextField(
-                      maxLines: 3,
-                       controller: captionController,
-                       decoration: InputDecoration(hintText: 'Enter Text Here'),
-                    ),width: MediaQuery.of(context).size.width * 0.7,
+  buildSplashScreen() {
+    return Column(
+      children: <Widget>[
+        Padding(padding: EdgeInsets.only(top: 100.0)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            Container(
+              child: TextField(
+                maxLines: 3,
+                controller: captionController,
+                decoration: InputDecoration(hintText: 'Enter Text Here'),
+              ),
+              width: MediaQuery.of(context).size.width * 0.7,
+            ),
+            GestureDetector(
+              onTap: () => createPostInFirestore(
+                    mediaUrl: "",
+                    location: "",
+                    description: captionController.text,
                   ),
-                  Container(
-                child:RaisedButton(
-                onPressed: () {
-                createPostInFirestore(
-                   mediaUrl: "",
-      location: "",
-      description: captionController.text,
-                );
-                },  
-                child: Text('Post'),
-                textColor: Colors.white,
-                color: Colors.blue,
+              child: Icon(
+                Icons.send,
+                size: 28.0,
+                color: Colors.blue[900],
               ),
- 
-                  ),
-                ],
-              ),
-              Row(
-                //ROW 2
-                children: <Widget>[
-      Text('or'),
-        ],
-              ),
-              Row(
-                  children: [
-                  RaisedButton(
+            ),
+          ],
+        ),
+        Row(
+          children: <Widget>[
+            Padding(padding: EdgeInsets.only(top: 100.0, left: 150.0)),
+            Container(child: Text("OR",
+            style: TextStyle(fontWeight: FontWeight.bold),)),
+          ],
+        ),
+        Row(
+          children: [
+            Padding(padding: EdgeInsets.only(left: 80.0)),
+            RaisedButton(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -128,10 +126,34 @@ class _UploadState extends State<Upload>
                 ),
                 color: Colors.deepOrange,
                 onPressed: () => selectImage(context))
-                  ],
-              )  
-        ],
-      ),
+          ],
+        ),
+        // Row(
+        //   children: <Widget>[
+        //     Padding(padding: EdgeInsets.only(top: 100.0, left: 150.0)),
+        //     Container(child: Text("OR",
+        //     style: TextStyle(fontWeight: FontWeight.bold),)),
+        //   ],
+        // ),
+        // Row(
+        //   children: [
+        //     Padding(padding: EdgeInsets.only(left: 80.0)),
+        //     RaisedButton(
+        //         shape: RoundedRectangleBorder(
+        //           borderRadius: BorderRadius.circular(8.0),
+        //         ),
+        //         child: Text(
+        //           "Upload Video",
+        //           style: TextStyle(
+        //             color: Colors.white,
+        //             fontSize: 22.0,
+        //           ),
+        //         ),
+        //         color: Colors.deepOrange,
+        //         onPressed: () => selectImage(context))
+        //   ],
+        // ),
+      ],
     );
   }
 
@@ -162,11 +184,8 @@ class _UploadState extends State<Upload>
 
   createPostInFirestore(
       {String mediaUrl, String location, String description}) {
-    userPostRef
-        // .document(widget.currentUser.id)
-        // .collection("userPosts")
-        .document(postId)
-        .setData({
+        if(widget.currentUser.referralPoints >=5){
+userPostRef.document(postId).setData({
       "postId": postId,
       "ownerId": widget.currentUser.id,
       "username": widget.currentUser.username,
@@ -174,21 +193,51 @@ class _UploadState extends State<Upload>
       "description": description,
       "location": location,
       "timestamp": timestamp,
-      "postStatus":"pending",
+      "postStatus": "pending",
       "likes": {},
-      "disLikes":{},
-      "comments":{}
+      "disLikes": {},
+      "comments": {}
     });
-    if(captionController.text!=null || captionController.text!=""){
-                   captionController.clear();
+    if (captionController.text != null || captionController.text != "") {
+      captionController.clear();
     }
     Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Profile(profileId: currentUser?.id)),
+      context,
+      MaterialPageRoute(
+          builder: (context) => Profile(profileId: currentUser?.id)),
+    );
+        }else{
+          _showMyDialog("Warning","You do not have enough points to post the content.","Please refer this app to your loved one and earn points.");
+        }
     
-  );
   }
-
+Future<void> _showMyDialog(status,message,message1) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(status),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+                Text(message1),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Ok'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   handleSubmit() async {
     setState(() {
       isUploading = true;
@@ -206,7 +255,6 @@ class _UploadState extends State<Upload>
       file = null;
       isUploading = false;
       postId = Uuid().v4();
-       
     });
   }
 

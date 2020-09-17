@@ -5,29 +5,28 @@ import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/activity_feed.dart';
 import 'package:fluttershare/pages/home.dart';
 import 'package:fluttershare/pages/search.dart';
-// import 'package:fluttershare/widgets/header.dart';
-import 'package:fluttershare/widgets/post.dart';
+import 'package:fluttershare/widgets/contests.dart';
 import 'package:fluttershare/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
 
 final usersRef = Firestore.instance.collection('users');
 
-class Timeline extends StatefulWidget {
+class ContestTimeline extends StatefulWidget {
   final User currentUser;
 
-  Timeline({this.currentUser});
+  ContestTimeline({this.currentUser});
 
   @override
-  _TimelineState createState() => _TimelineState();
+  _ContestTimelineState createState() => _ContestTimelineState();
 }
 
-class _TimelineState extends State<Timeline> {
+class _ContestTimelineState extends State<ContestTimeline> {
   TextEditingController postController = TextEditingController();
 
   final String currentUserId = currentUser?.id;
   bool isLoading = false;
   int postCount = 0;
-  List<Post> posts = [];
+  List<Contests> contests = [];
   List<User> userData = [];
 
   @override
@@ -41,10 +40,10 @@ class _TimelineState extends State<Timeline> {
     usersRef
         .where("id", isEqualTo: currentUserId)
         .getDocuments()
-        .then((QuerySnapshot snapshot) {
-         
+        .then((QuerySnapshot snapshot) { 
       snapshot.documents.forEach((DocumentSnapshot doc) {
         userData.add(User.fromDocument(doc));
+        print(userData);
       });
     });
   }
@@ -54,13 +53,6 @@ class _TimelineState extends State<Timeline> {
       isLoading = true;
     });
     getDocumentDetails();
-    // usersRef.getDocuments().then((QuerySnapshot snapshot) {
-    //    print( snapshot.documents);
-    //   snapshot.documents.forEach((DocumentSnapshot doc) {
-       
-    //     // getDocumentDetails(doc.documentID);
-    //   });
-    // });
   }
 
   getuserProfile() {
@@ -69,9 +61,6 @@ class _TimelineState extends State<Timeline> {
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return CircleAvatar(
-            // radius: 50.0,
-            // backgroundColor: Colors.grey,
-            // backgroundImage: CachedNetworkImageProvider(user.photoUrl),
           );
           }
           User user = User.fromDocument(snapshot.data);
@@ -84,14 +73,16 @@ class _TimelineState extends State<Timeline> {
   }
 
   getDocumentDetails() async {
-    QuerySnapshot snapshot = await userPostRef
+    QuerySnapshot snapshot = await userContestRef
         .orderBy('timestamp', descending: true)
-        .where("postStatus", isEqualTo: "verified")
+        .where("contestStatus", isEqualTo: "verified")
+        .where("contestExpired",isEqualTo: false)
         .getDocuments();
     setState(() {
       isLoading = false;
-      posts.addAll(
-          snapshot.documents.map((doc) => Post.fromDocument(doc)).toList());
+      contests.addAll(
+          snapshot.documents.map((doc) => Contests.fromDocument(doc)).toList());
+          print(contests);
       // posts.sort((a,b) => b.timestamp.compareTo(a.timestamp));
     });
   }
@@ -121,51 +112,45 @@ class _TimelineState extends State<Timeline> {
   }
 
   createPostInFirestore() {
-       
-        String postId= Uuid().v4();
-        if(widget.currentUser.referralPoints >= 5){
- if (postController.text != "" && postController.text != null) {
-      userPostRef
-          // .document(widget.currentUser.id)
-          // .collection("userPosts")
-          .document(postId)
+        String contestId= Uuid().v4();
+    if (postController.text != "" && postController.text != null) {
+      userContestRef
+          .document(contestId)
           .setData({
-        "postId": postId,
+        "contestId": contestId,
         "ownerId": widget.currentUser.id,
         "username": widget.currentUser.username,
         "mediaUrl": "",
         "description": postController.text,
         "location": "",
         "timestamp": timestamp,
-        "postStatus": "pending",
+        "contestStatus": "pending",
         "likes": {},
         "disLikes":{},
-        "comments": {}
+        "comments": {},
+        "contestType":"",
+        "contestExpired":false,
+        "contestExpiredIn":7
       });
      postController.clear();
-     _showMyDialog("Success","Your post is yet to verify.","Once verified, it is visible to all.");
+     _showMyDialog();
     }
-        }else{
-          _showMyDialog("Warning","You do not have enough points to post the content.","Please refer this app to your loved one and earn points.");
-        }
-         
-   
            
 
   }
 
-Future<void> _showMyDialog(status,message,message1) async {
+Future<void> _showMyDialog() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(status),
+          title: Text("Contest uploaded successfully"),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text(message),
-                Text(message1),
+                Text('Your Contest is yet to verify.'),
+                Text('Once verified, it is visible to all'),
               ],
             ),
           ),
@@ -186,7 +171,7 @@ Future<void> _showMyDialog(status,message,message1) async {
       return circularProgress();
     }
     return Column(
-      children: posts,
+      children: contests,
     );
   }
 
@@ -194,7 +179,7 @@ Future<void> _showMyDialog(status,message,message1) async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: new Text('TEAM ONE'),
+        title: new Text('CONTESTS'),
         actions: [
           // action button
           IconButton(
@@ -220,10 +205,10 @@ Future<void> _showMyDialog(status,message,message1) async {
       ),
       body: Column(
         children: <Widget>[
-          ListTile(
+        widget.currentUser.credits=='1'?  ListTile(
             title: TextFormField(
               controller: postController,
-              decoration: InputDecoration(labelText: "Write a post..."),
+              decoration: InputDecoration(labelText: "Write a contest..."),
             ),
             trailing: OutlineButton(
               onPressed: createPostInFirestore,
@@ -233,8 +218,7 @@ Future<void> _showMyDialog(status,message,message1) async {
                 color: Colors.blue,
                 ),
             ),
-          ),
-          Divider(),
+          ):Divider(),
           Expanded(
             child: ListView(
               children: <Widget>[

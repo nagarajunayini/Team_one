@@ -99,7 +99,7 @@ class ActivityFeedItem extends StatelessWidget {
   }
 
   configureMediaPreview(context) {
-    if (type == "like" || type == 'comment') {
+    if (type == "like" || type == 'comment' || type=='Dislike') {
       mediaPreview = GestureDetector(
         onTap: () => showPost(context),
         child: Container(
@@ -125,6 +125,8 @@ class ActivityFeedItem extends StatelessWidget {
       activityItemText = "liked your post";
     } else if (type == 'follow') {
       activityItemText = "is following you";
+    }else if (type == 'Dislike') {
+      activityItemText = "disliked your post";
     } else if (type == 'comment') {
       activityItemText = 'replied: $commentData';
     } else {

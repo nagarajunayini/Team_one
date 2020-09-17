@@ -78,10 +78,8 @@ class _ProfileState extends State<Profile> {
       isLoading = true;
     });
     QuerySnapshot snapshot = await userPostRef
-        // .document(widget.profileId)
-        // .collection('userPosts')
         .orderBy('timestamp', descending: true)
-         .where("ownerId", isEqualTo: widget.profileId)
+        .where("ownerId", isEqualTo: widget.profileId)
         .getDocuments();
     setState(() {
       isLoading = false;
@@ -245,7 +243,7 @@ class _ProfileState extends State<Profile> {
         future: usersRef.document(widget.profileId).get(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return circularProgress();
+            return Container();
           }
           User user = User.fromDocument(snapshot.data);
           return Padding(
@@ -301,52 +299,45 @@ class _ProfileState extends State<Profile> {
                   alignment: Alignment.centerLeft,
                   padding: EdgeInsets.only(top: 4.0),
                   child: Text(
-                    user.displayName,
+                    "Wallet Points: " + user.referralPoints.toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                 Container(
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(top: 4.0),
-                  child: Text(
-                   "Wallet Points: " + user.referralPoints.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    RaisedButton(
+                        color: Colors.greenAccent,
+                        onPressed: generateShortDeepLink,
+                        child: Text(
+                          'Refer',
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        )),
+                    RaisedButton(
+                      color: Colors.red,
+                      onPressed: logout,
+                      child: Text(
+                        'Logout',
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                ),
-                //  Container(
-                //   alignment: Alignment.centerLeft,
-                //   padding: EdgeInsets.only(top: 4.0),
-                //   child: Text(
-                //     deepLink.toString(),
-                //     style: TextStyle(
-                //       fontWeight: FontWeight.bold,
-                //     ),
-                //   ),
-                // ),
-                Container(
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(top: 2.0),
-                  child: Text(
-                    user.bio,
-                  ),
-                ),
-                Container(
-                    margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                    child: RaisedButton(
-                      onPressed: () => generateShortDeepLink(),
-                      child: Text('refer a friend'),
-                      textColor: Colors.white,
-                      color: Colors.green,
-                      padding: EdgeInsets.fromLTRB(12, 12, 12, 12),
-                    )),
+                  ],
+                )
               ],
             ),
           );
         });
+  }
+
+  logout() async {
+    await googleSignIn.signOut();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
   generateShortDeepLink() async {

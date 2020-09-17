@@ -8,16 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/activity_feed.dart';
 import 'package:fluttershare/pages/comments.dart';
+import 'package:fluttershare/pages/contest_comments.dart';
 import 'package:fluttershare/pages/home.dart';
+import 'package:fluttershare/pages/home.dart' as prefix0;
 import 'package:fluttershare/pages/postreaction_chart.dart';
 import 'package:fluttershare/pages/showLikes.dart';
 import 'package:fluttershare/widgets/custom_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:flutter/material.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 
-class Post extends StatefulWidget {
-  final String postId;
+class Contests extends StatefulWidget {
+  final String contestId;
   final String ownerId;
   final String username;
   final String location;
@@ -27,9 +27,13 @@ class Post extends StatefulWidget {
   final dynamic likes;
   final dynamic disLikes;
   final dynamic comments;
+  final String contestType;
+  final bool contestExpired;
+  final int  contestExpiredIn;
 
-  Post(
-      {this.postId,
+
+  Contests(
+      {this.contestId,
       this.ownerId,
       this.username,
       this.location,
@@ -38,11 +42,14 @@ class Post extends StatefulWidget {
       this.mediaUrl,
       this.likes,
       this.disLikes,
-      this.comments});
+      this.comments,
+      this.contestType,
+      this.contestExpired,
+      this.contestExpiredIn});
 
-  factory Post.fromDocument(DocumentSnapshot doc) {
-    return Post(
-      postId: doc['postId'],
+  factory Contests.fromDocument(DocumentSnapshot doc) {
+    return Contests(
+      contestId: doc['contestId'],
       ownerId: doc['ownerId'],
       username: doc['username'],
       location: doc['location'],
@@ -52,6 +59,9 @@ class Post extends StatefulWidget {
       likes: doc['likes'],
       disLikes: doc['disLikes'],
       comments: doc['comments'],
+      contestType: doc['contestType'],
+      contestExpired: doc['contestExpired'],
+      contestExpiredIn: doc['contestExpiredIn'],
     );
   }
 
@@ -95,8 +105,8 @@ class Post extends StatefulWidget {
   }
 
   @override
-  _PostState createState() => _PostState(
-      postId: this.postId,
+  _ContestsState createState() => _ContestsState(
+      contestId: this.contestId,
       ownerId: this.ownerId,
       username: this.username,
       location: this.location,
@@ -108,12 +118,15 @@ class Post extends StatefulWidget {
       disLikesCount: getDislikesCount(this.disLikes),
       likeCount: getLikeCount(this.likes),
       comments: this.comments,
+      contestType:this.contestType,
+      contestExpired: this.contestExpired,
+      contestExpiredIn: this.contestExpiredIn,
       commentCount: getCommentCount(this.comments));
 }
 
-class _PostState extends State<Post> {
+class _ContestsState extends State<Contests> {
   final String currentUserId = currentUser?.id;
-  final String postId;
+  final String contestId;
   final String ownerId;
   final String username;
   final String location;
@@ -129,9 +142,12 @@ class _PostState extends State<Post> {
   int commentCount;
   Map likes;
   Map comments;
+  final String contestType;
+  final bool contestExpired;
+  final int contestExpiredIn;
 
-  _PostState(
-      {this.postId,
+  _ContestsState(
+      {this.contestId,
       this.ownerId,
       this.username,
       this.location,
@@ -143,38 +159,10 @@ class _PostState extends State<Post> {
       this.disLikesCount,
       this.likeCount,
       this.commentCount,
-      this.comments});
-
-  static List<charts.Series<PostReactions, String>> _createRandomData(
-      likes, dislikes) {
-    final desktopSalesData = [
-      PostReactions('Likes', likes),
-      PostReactions('disLikes', dislikes),
-    ];
-    return [
-      charts.Series<PostReactions, String>(
-          id: 'postReactions',
-          domainFn: (PostReactions reaction, _) => reaction.type,
-          measureFn: (PostReactions reaction, _) => reaction.no,
-          data: desktopSalesData,
-          fillColorFn: (PostReactions reaction, _) {
-            switch (reaction.type) {
-              case "Likes":
-                {
-                  return charts.MaterialPalette.green.shadeDefault;
-                }
-              case "disLikes":
-                {
-                  return charts.MaterialPalette.red.shadeDefault;
-                }
-              default:
-                {
-                  return charts.MaterialPalette.blue.shadeDefault;
-                }
-            }
-          }),
-    ];
-  }
+      this.comments,
+      this.contestType,
+      this.contestExpired,
+      this.contestExpiredIn});
 
   buildPostHeader() {
     return FutureBuilder(
@@ -266,7 +254,7 @@ class _PostState extends State<Post> {
 
   // Note: To delete post, ownerId and currentUserId must be equal, so they can be used interchangeably
   deletePost() async {
-    userPostRef.document(postId).get().then((doc) {
+    userContestRef.document(contestId).get().then((doc) {
       if (doc.exists) {
         doc.reference.delete();
       }
@@ -275,7 +263,7 @@ class _PostState extends State<Post> {
     QuerySnapshot activityFeedSnapshot = await activityFeedRef
         .document(ownerId)
         .collection("feedItems")
-        .where('postId', isEqualTo: postId)
+        .where('contestId', isEqualTo: contestId)
         .getDocuments();
     activityFeedSnapshot.documents.forEach((doc) {
       if (doc.exists) {
@@ -284,7 +272,7 @@ class _PostState extends State<Post> {
     });
     // then delete all comments
     QuerySnapshot commentsSnapshot = await commentsRef
-        .document(postId)
+        .document(contestId)
         .collection('comments')
         .getDocuments();
     commentsSnapshot.documents.forEach((doc) {
@@ -296,19 +284,17 @@ class _PostState extends State<Post> {
 
   handleLikePost() {
     bool _isLiked = likes[currentUserId] == true;
-
     if (_isLiked) {
-      userPostRef.document(postId).updateData({'likes.$currentUserId': false});
+      userContestRef.document(contestId).updateData({'likes.$currentUserId': false});
       removeLikeFromActivityFeed();
       setState(() {
         likeCount -= 1;
         isLiked = false;
         likes[currentUserId] = false;
-        // buildLikesDislikesGraph(likeCount,disLikesCount);
       });
       removelike();
     } else if (!_isLiked) {
-      userPostRef.document(postId).updateData({'likes.$currentUserId': true});
+      userContestRef.document(contestId).updateData({'likes.$currentUserId': true});
       addLikeToActivityFeed();
       addlike();
       setState(() {
@@ -326,24 +312,22 @@ class _PostState extends State<Post> {
   }
 
   handleDisLikePost() {
-    print("hello");
     bool _isDisLiked = disLikes[currentUserId] == true;
 
     if (_isDisLiked) {
-      userPostRef
-          .document(postId)
+      userContestRef
+          .document(contestId)
           .updateData({'disLikes.$currentUserId': false});
       removeDisLikeFromActivityFeed();
       setState(() {
         disLikesCount -= 1;
         isDisLiked = false;
         disLikes[currentUserId] = false;
-        //  LikesAndDislikes(likes: likeCount, disLikes: disLikesCount);
       });
       removeDislike();
     } else if (!_isDisLiked) {
-      userPostRef
-          .document(postId)
+      userContestRef
+          .document(contestId)
           .updateData({'disLikes.$currentUserId': true});
       addDisLikeToActivityFeed();
       addDislike();
@@ -352,8 +336,6 @@ class _PostState extends State<Post> {
         isDisLiked = true;
         disLikes[currentUserId] = true;
         showHeart = true;
-        LikesAndDislikes(likes: likeCount, disLikes: disLikesCount);
-        // buildLikesDislikesGraph(likeCount, disLikesCount);
       });
       Timer(Duration(milliseconds: 500), () {
         setState(() {
@@ -365,7 +347,7 @@ class _PostState extends State<Post> {
 
   removelike() {
     likesRef
-        .document(postId)
+        .document(contestId)
         .collection("Likes")
         .document(ownerId)
         .get()
@@ -378,7 +360,7 @@ class _PostState extends State<Post> {
 
   removeDislike() {
     disLikesRef
-        .document(postId)
+        .document(contestId)
         .collection("DisLikes")
         .document(ownerId)
         .get()
@@ -390,7 +372,7 @@ class _PostState extends State<Post> {
   }
 
   addlike() {
-    likesRef.document(postId).collection("Likes").document(ownerId).setData({
+    likesRef.document(contestId).collection("Likes").document(ownerId).setData({
       "username": currentUser.username,
       "liked": true,
       "timestamp": timestamp,
@@ -401,7 +383,7 @@ class _PostState extends State<Post> {
 
   addDislike() {
     disLikesRef
-        .document(postId)
+        .document(contestId)
         .collection("DisLikes")
         .document(ownerId)
         .setData({
@@ -420,13 +402,13 @@ class _PostState extends State<Post> {
       activityFeedRef
           .document(ownerId)
           .collection("feedItems")
-          .document(postId)
+          .document(contestId)
           .setData({
         "type": "like",
         "username": currentUser.username,
         "userId": currentUser.id,
         "userProfileImg": currentUser.photoUrl,
-        "postId": postId,
+        "postId": contestId,
         "mediaUrl": mediaUrl,
         "timestamp": timestamp,
       });
@@ -439,7 +421,7 @@ class _PostState extends State<Post> {
       activityFeedRef
           .document(ownerId)
           .collection("feedItems")
-          .document(postId)
+          .document(contestId)
           .get()
           .then((doc) {
         if (doc.exists) {
@@ -456,13 +438,13 @@ class _PostState extends State<Post> {
       activityFeedRef
           .document(ownerId)
           .collection("feedItems")
-          .document(postId)
+          .document(contestId)
           .setData({
         "type": "Dislike",
         "username": currentUser.username,
         "userId": currentUser.id,
         "userProfileImg": currentUser.photoUrl,
-        "postId": postId,
+        "postId": contestId,
         "mediaUrl": mediaUrl,
         "timestamp": timestamp,
       });
@@ -475,7 +457,7 @@ class _PostState extends State<Post> {
       activityFeedRef
           .document(ownerId)
           .collection("feedItems")
-          .document(postId)
+          .document(contestId)
           .get()
           .then((doc) {
         if (doc.exists) {
@@ -544,40 +526,20 @@ class _PostState extends State<Post> {
                       Icons.thumb_up,
                       size: 28.0,
                       color: Colors.green,
-                    ))
-                : isDisLiked
-                    ? GestureDetector(
-                        onTap: handleDisLikePost,
-                        child: Icon(
-                          Icons.thumb_down,
-                          size: 28.0,
-                          color: Colors.red,
-                        ))
-                    : Row(
-                        children: <Widget>[
-                          GestureDetector(
+                    )
+                    ): GestureDetector(
                               onTap: handleLikePost,
                               child: Icon(
                                 Icons.thumb_up,
                                 size: 28.0,
                                 color: Colors.grey,
-                              )),
-                          Padding(
-                              padding: EdgeInsets.only(top: 40.0, left: 80.0)),
-                          GestureDetector(
-                              onTap: handleDisLikePost,
-                              child: Icon(
-                                Icons.thumb_down,
-                                size: 28.0,
-                                color: Colors.grey,
-                              ))
-                        ],
-                      ),
+                              )
+                              ),
             Padding(padding: EdgeInsets.only(top: 40.0, left: 150.0)),
             GestureDetector(
               onTap: () => showComments(
                     context,
-                    postId: postId,
+                    contestId: contestId,
                     ownerId: ownerId,
                     mediaUrl: mediaUrl,
                   ),
@@ -589,41 +551,32 @@ class _PostState extends State<Post> {
             ),
           ],
         ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                children: [
-                  Container(
-                    height: 100.0,
-                    child: barChart(likeCount, disLikesCount),
-                  )
-                ],
+          Row(
+            children: <Widget>[
+              Container(
+                margin: EdgeInsets.only(left: 20.0),
+                child: Text(
+                  "$likeCount likes",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            )
-          ],
-        ),
+              Container(
+                margin: EdgeInsets.only(left: 200.0),
+                child: Text(
+                  "$commentCount comments",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        
       ],
-    );
-  }
-
-  barChart(likes, dislikes) {
-    return new charts.BarChart(
-      _createRandomData(likes, dislikes),
-      animate: true,
-      vertical: false,
-      primaryMeasureAxis: new charts.NumericAxisSpec(
-        renderSpec: new charts.NoneRenderSpec(),
-        tickProviderSpec: new charts.StaticNumericTickProviderSpec(
-          <charts.TickSpec<num>>[
-            charts.TickSpec<num>(0),
-            charts.TickSpec<num>(5),
-            charts.TickSpec<num>(10),
-          ],
-        ),
-      ),
-      domainAxis: new charts.OrdinalAxisSpec(
-          showAxisLine: true, renderSpec: new charts.GridlineRendererSpec()),
     );
   }
 
@@ -647,10 +600,10 @@ class _PostState extends State<Post> {
 }
 
 showComments(BuildContext context,
-    {String postId, String ownerId, String mediaUrl}) {
+    {String contestId, String ownerId, String mediaUrl}) {
   Navigator.push(context, MaterialPageRoute(builder: (context) {
-    return Comments(
-      postId: postId,
+    return ContestComments(
+      postId: contestId,
       postOwnerId: ownerId,
       postMediaUrl: mediaUrl,
     );
@@ -658,9 +611,8 @@ showComments(BuildContext context,
 }
 
 buildLikesDislikesGraph(likes, dislikes) {
-  print('hello');
   return Container(
-    height: 102.0,
+    height: 100.0,
     child: LikesAndDislikes(likes: likes, disLikes: dislikes),
   );
 }
@@ -673,10 +625,10 @@ buildDevider() {
 }
 
 showlikes(BuildContext context,
-    {String postId, String ownerId, String mediaUrl}) {
+    {String contestId, String ownerId, String mediaUrl}) {
   Navigator.push(context, MaterialPageRoute(builder: (context) {
     return Likes(
-      postId: postId,
+      postId: contestId,
       postOwnerId: ownerId,
       postMediaUrl: mediaUrl,
     );

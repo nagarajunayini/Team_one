@@ -63,8 +63,16 @@ class LikesAndDislikesState extends State<LikesAndDislikes> {
       seriesList,
       animate: true,
       vertical: false,
+      
       primaryMeasureAxis:
-          new charts.NumericAxisSpec(renderSpec: new charts.NoneRenderSpec()),
+          new charts.NumericAxisSpec(renderSpec: new charts.NoneRenderSpec(),
+          tickProviderSpec: new charts.StaticNumericTickProviderSpec(
+<charts.TickSpec<num>>[
+charts.TickSpec<num>(0),
+charts.TickSpec<num>(5),
+charts.TickSpec<num>(10),
+],
+),),
       domainAxis: new charts.OrdinalAxisSpec(
           showAxisLine: true,
           renderSpec: new charts.GridlineRendererSpec(
@@ -76,6 +84,7 @@ class LikesAndDislikesState extends State<LikesAndDislikes> {
   @override
   void initState() {
     super.initState();
+    print("bargraph");
     seriesList = _createRandomData(this.likes,this.disLikes);
   }
 

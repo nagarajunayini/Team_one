@@ -5,7 +5,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
-import 'package:fluttershare/pages/pagination.dart';
 import 'package:fluttershare/pages/phone_number.dart';
 import 'package:fluttershare/pages/create_account.dart';
 import 'package:fluttershare/pages/profile.dart';
@@ -14,17 +13,19 @@ import 'package:fluttershare/pages/timeline.dart';
 import 'package:fluttershare/pages/upload.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'contest_timeLine.dart';
+
 final GoogleSignIn googleSignIn = GoogleSignIn();
 final StorageReference storageRef = FirebaseStorage.instance.ref();
 final usersRef = Firestore.instance.collection('users');
 final postsRef = Firestore.instance.collection('posts');
 final userPostRef = Firestore.instance.collection('userPosts');
+final userContestRef = Firestore.instance.collection('Contests');
 final commentsRef = Firestore.instance.collection('comments');
 final currentWeekInfluencersRef =
     Firestore.instance.collection('currentWeekInfluencers');
 final likesRef = Firestore.instance.collection('likes');
 final disLikesRef = Firestore.instance.collection('Dislikes');
-
 final activityFeedRef = Firestore.instance.collection('feed');
 final followersRef = Firestore.instance.collection('followers');
 final followingRef = Firestore.instance.collection('following');
@@ -123,20 +124,21 @@ class _HomeState extends State<Home> {
 
     if (!doc.exists) {
       // 2) if the user doesn't exist, then we want to take them to the create account page
-      final username = await Navigator.push(
+      List<dynamic> userDetails = await Navigator.push(
           context, MaterialPageRoute(builder: (context) => CreateAccount()));
-
+       print(userDetails);
       // 3) get username from create account, use it to make new user document in users collection
       usersRef.document(user.id).setData({
         "id": user.id,
-        "username": username,
+        "username": userDetails[0] is String?userDetails[0]:userDetails[1],
         "photoUrl": user.photoUrl,
         "email": user.email,
         "displayName": user.displayName,
         "bio": "",
         "timestamp": timestamp,
         "credits": "0",
-        "referralPoints": 0
+        "referralPoints": 0,
+        "extraInfo":userDetails[0] is String?userDetails[1]:userDetails[0],
       });
       // make new user their own follower (to include their posts in their timeline)
       await followersRef
@@ -193,7 +195,7 @@ class _HomeState extends State<Home> {
       body: PageView(
         children: <Widget>[
           Timeline(currentUser: currentUser),
-          Stats(),
+          ContestTimeline(currentUser: currentUser),
           Upload(currentUser: currentUser),
           // Search(),
           Profile(profileId: currentUser?.id),
@@ -208,7 +210,7 @@ class _HomeState extends State<Home> {
           activeColor: Theme.of(context).primaryColor,
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home)),
-            BottomNavigationBarItem(icon: Icon(Icons.people)),
+            BottomNavigationBarItem(icon: Icon(Icons.stars)),
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.photo_camera,
@@ -227,6 +229,7 @@ class _HomeState extends State<Home> {
 
   Scaffold buildUnAuthScreen() {
     return Scaffold(
+        
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -254,24 +257,18 @@ class _HomeState extends State<Home> {
             //   onTap: openPhonePage,
             //   child: Container(
             //     width: 260.0,
-            //     height: 60.0,
+            //     height: 360.0,
             //     decoration: BoxDecoration(
             //       image: DecorationImage(
             //         image: AssetImage(
-            //           'assets/images/phone_sign_in.png',
+            //           'assets/images/appicon.png',
             //         ),
             //         fit: BoxFit.cover,
             //       ),
             //     ),
             //   ),
             // ),
-            //  Text(
-            //   'Or',
-            //   style: TextStyle(
-            //     fontSize: 30.0,
-            //     color: Colors.black,
-            //   ),
-            // ),
+            
             GestureDetector(
               onTap: login,
               child: Container(

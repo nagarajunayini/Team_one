@@ -6,32 +6,32 @@ import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class Comments extends StatefulWidget {
+class ContestComments extends StatefulWidget {
   final String postId;
   final String postOwnerId;
   final String postMediaUrl;
 
-  Comments({
+  ContestComments({
     this.postId,
     this.postOwnerId,
     this.postMediaUrl,
   });
 
   @override
-  CommentsState createState() => CommentsState(
+ ContestCommentsState createState() => ContestCommentsState(
         postId: this.postId,
         postOwnerId: this.postOwnerId,
         postMediaUrl: this.postMediaUrl,
       );
 }
 
-class CommentsState extends State<Comments> {
+class ContestCommentsState extends State<ContestComments> {
   TextEditingController commentController = TextEditingController();
   final String postId;
   final String postOwnerId;
   final String postMediaUrl;
 
-  CommentsState({
+  ContestCommentsState({
     this.postId,
     this.postOwnerId,
     this.postMediaUrl,
@@ -67,7 +67,7 @@ class CommentsState extends State<Comments> {
       "userId": currentUser.id,
     });
     String commentText = commentController.text;
-    userPostRef
+    userContestRef
           // .document(postOwnerId)
           // .collection('userPosts')
           .document(postId)

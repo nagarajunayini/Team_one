@@ -19,9 +19,25 @@ class _EditProfileState extends State<EditProfile> {
   TextEditingController displayNameController = TextEditingController();
   TextEditingController bioController = TextEditingController();
   bool isLoading = false;
+  String username;
+  final _formKey = GlobalKey<FormState>();
   User user;
   bool _displayNameValid = true;
   bool _bioValid = true;
+  var gender = ["Male", "Female", "Others"];
+  var religion = ["Hindu", "Muslim", "Christian", "Others"];
+  var city = [
+    "Hyderabad",
+    "Bangolore",
+    "Tamilnadu",
+    "Mumbai",
+    "Delhi",
+    "Kerala",
+    "Others"
+  ];
+  String selectedGender ;
+  String selectedReligion;
+  String selectedCity ;
 
   @override
   void initState() {
@@ -35,55 +51,32 @@ class _EditProfileState extends State<EditProfile> {
     });
     DocumentSnapshot doc = await usersRef.document(widget.currentUserId).get();
     user = User.fromDocument(doc);
-    displayNameController.text = user.displayName;
-    bioController.text = user.bio;
+    displayNameController.text = user.username;
+    if(user.extraInfo!=null && user.extraInfo.length>=1){
+      user.extraInfo.forEach((a)=>{
+      if(this.city.indexOf(a)>-1){
+        this.selectedCity = a
+      } else if(this.gender.indexOf(a)>-1){
+        this.selectedGender = a
+      }else{
+        this.selectedReligion =a
+      }
+    });
+    }else{
+      this.selectedGender = "Male";
+      this.selectedReligion = "Hindu";
+      this.selectedCity = "Hyderabad";
+    }
+    
+  
+    
     setState(() {
       isLoading = false;
     });
   }
 
-  Column buildDisplayNameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-            padding: EdgeInsets.only(top: 12.0),
-            child: Text(
-              "Display Name",
-              style: TextStyle(color: Colors.grey),
-            )),
-        TextField(
-          controller: displayNameController,
-          decoration: InputDecoration(
-            hintText: "Update Display Name",
-            errorText: _displayNameValid ? null : "Display Name too short",
-          ),
-        )
-      ],
-    );
-  }
+  
 
-  Column buildBioField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(top: 12.0),
-          child: Text(
-            "Bio",
-            style: TextStyle(color: Colors.grey),
-          ),
-        ),
-        TextField(
-          controller: bioController,
-          decoration: InputDecoration(
-            hintText: "Update Bio",
-            errorText: _bioValid ? null : "Bio too long",
-          ),
-        )
-      ],
-    );
-  }
 
   updateProfileData() {
     setState(() {
@@ -99,7 +92,7 @@ class _EditProfileState extends State<EditProfile> {
     if (_displayNameValid && _bioValid) {
       usersRef.document(widget.currentUserId).updateData({
         "displayName": displayNameController.text,
-        "bio": bioController.text,
+        "extraInfo": [this.selectedCity,this.selectedGender,this.selectedReligion],
       });
       SnackBar snackbar = SnackBar(content: Text("Profile updated!"));
       _scaffoldKey.currentState.showSnackBar(snackbar);
@@ -127,9 +120,9 @@ class _EditProfileState extends State<EditProfile> {
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Icon(
-              Icons.done,
+              Icons.close,
               size: 30.0,
-              color: Colors.green,
+              color: Colors.red,
             ),
           ),
         ],
@@ -137,57 +130,149 @@ class _EditProfileState extends State<EditProfile> {
       body: isLoading
           ? circularProgress()
           : ListView(
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.only(top: 20.0),
+            child: Column(
               children: <Widget>[
-                Container(
-                  child: Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(
-                          top: 16.0,
-                          bottom: 8.0,
-                        ),
-                        child: CircleAvatar(
-                          radius: 50.0,
+                GestureDetector(
+                  onTap: () {
+                    //do what you want here
+                  },
+                  child: CircleAvatar(
+                    radius: 50.0,
                           backgroundImage:
                               CachedNetworkImageProvider(user.photoUrl),
-                        ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: TextFormField(
+                      controller: displayNameController,
+                      decoration: InputDecoration(labelText: "userName"),   
+                ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(padding: EdgeInsets.only(top: 0.0, left: 0.0)),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 10.0,
                       ),
-                      // Padding(
-                      //   padding: EdgeInsets.all(16.0),
-                      //   child: Column(
-                      //     children: <Widget>[
-                      //       buildDisplayNameField(),
-                      //       buildBioField(),
-                      //     ],
-                      //   ),
-                      // ),
-                      RaisedButton(
-                        onPressed: updateProfileData,
+                      child: Center(
                         child: Text(
-                          "Update Profile",
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          "Gender:",
+                          style: TextStyle(fontSize: 20.0),
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: FlatButton.icon(
-                          onPressed: logout,
-                          icon: Icon(Icons.cancel, color: Colors.red),
-                          label: Text(
-                            "Logout",
-                            style: TextStyle(color: Colors.red, fontSize: 20.0),
-                          ),
+                    ),
+                    Padding(
+                        padding: EdgeInsets.only(
+                            top: 60.0, left: 150.0, right: 10.0)),
+                    DropdownButton<String>(
+                      items: gender.map((String dropdownItem) {
+                        return DropdownMenuItem<String>(
+                            value: dropdownItem, child: Text(dropdownItem));
+                      }).toList(),
+                      onChanged: (String selectedValue) {
+                        setState(() {
+                          this.selectedGender = selectedValue;
+                        });
+                      },
+                      value: this.selectedGender,
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(padding: EdgeInsets.only(top: 0.0, left: 0.0)),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 10.0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "City:",
+                          style: TextStyle(fontSize: 20.0),
                         ),
                       ),
-                    ],
+                    ),
+                    Padding(
+                        padding: EdgeInsets.only(
+                            top: 60.0, left: 150.0, right: 10.0)),
+                    DropdownButton<String>(
+                      items: city.map((String dropdownItem) {
+                        return DropdownMenuItem<String>(
+                            value: dropdownItem, child: Text(dropdownItem));
+                      }).toList(),
+                      onChanged: (String selectedValue) {
+                        setState(() {
+                          this.selectedCity = selectedValue;
+                        });
+                      },
+                      value: this.selectedCity,
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(padding: EdgeInsets.only(top: 0.0, left: 0.0,bottom:20.0)),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 10.0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Religion:",
+                          style: TextStyle(fontSize: 20.0),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                        padding: EdgeInsets.only(
+                            top: 60.0, left: 150.0, right: 10.0)),
+                    DropdownButton<String>(
+                      items: religion.map((String dropdownItem) {
+                        return DropdownMenuItem<String>(
+                            value: dropdownItem, child: Text(dropdownItem));
+                      }).toList(),
+                      onChanged: (String selectedValue) {
+                        setState(() {
+                          this.selectedReligion = selectedValue;
+                        });
+                      },
+                      value: this.selectedReligion,
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: updateProfileData,
+                  child: Container(
+                    height: 50.0,
+                    width: 350.0,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(7.0),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Update",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15.0,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
+          )
+        ],
+      ),
     );
   }
 }

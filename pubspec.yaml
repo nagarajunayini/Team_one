@@ -19,6 +19,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # flutter_launcher_icons: ^0.7.3   
   cloud_firestore: ^0.9.7+2
   image_picker: ^0.6.0+2
   firebase_storage: ^2.1.0+1
@@ -41,6 +42,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+# flutter_icons:
+#   android: "launcher_icon"
+#   ios: true
+#   image_path: "assets/images/appicon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -68,3 +74,4 @@ flutter:
     - assets/images/thumsupgreen.png
     - assets/images/dislikegray.png
     - assets/images/dislikered.png
+    - assets/images/appicon.png
