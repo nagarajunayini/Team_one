@@ -12,12 +12,9 @@ class Stats extends StatefulWidget {
 }
 
 class _StatsState extends State<Stats> {
-  
-
   buildComments() {
     return StreamBuilder(
-        stream: currentWeekInfluencersRef
-            .snapshots(),
+        stream: currentWeekInfluencersRef.snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return circularProgress();
@@ -32,7 +29,6 @@ class _StatsState extends State<Stats> {
         });
   }
 
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +42,6 @@ class _StatsState extends State<Stats> {
     );
   }
 }
-
 
 class Stat extends StatelessWidget {
   final String username;

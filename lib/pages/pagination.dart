@@ -123,7 +123,6 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
@@ -141,34 +140,32 @@ class ChartsDemoState extends State<ChartsDemo> {
   static List<charts.Series<PostReactions, String>> _createRandomData() {
     final desktopSalesData = [
       PostReactions('Likes', 10),
-       PostReactions('disLikes', 50),
+      PostReactions('disLikes', 50),
     ];
     return [
       charts.Series<PostReactions, String>(
-        id: 'postReactions',
-        domainFn: (PostReactions posts, _) => posts.type,
-        measureFn: (PostReactions posts, _) => posts.no,
-        data: desktopSalesData,
-        
-        fillColorFn: (PostReactions posts, _) {
-          switch (posts.type) {
-            case "Likes":
-              {
-                return charts.MaterialPalette.green.shadeDefault;
-              }
-            case "disLikes":
-              {
-                return charts.MaterialPalette.red.shadeDefault;
-              }
-            default:
-              {
-                return charts.MaterialPalette.blue.shadeDefault;
-              }
-          }
-        },
-        labelAccessorFn: (PostReactions posts, _) =>
-              '${posts.type}: \$${posts.no.toString()}'
-      ),
+          id: 'postReactions',
+          domainFn: (PostReactions posts, _) => posts.type,
+          measureFn: (PostReactions posts, _) => posts.no,
+          data: desktopSalesData,
+          fillColorFn: (PostReactions posts, _) {
+            switch (posts.type) {
+              case "Likes":
+                {
+                  return charts.MaterialPalette.green.shadeDefault;
+                }
+              case "disLikes":
+                {
+                  return charts.MaterialPalette.red.shadeDefault;
+                }
+              default:
+                {
+                  return charts.MaterialPalette.blue.shadeDefault;
+                }
+            }
+          },
+          labelAccessorFn: (PostReactions posts, _) =>
+              '${posts.type}: \$${posts.no.toString()}'),
     ];
   }
 
@@ -177,25 +174,24 @@ class ChartsDemoState extends State<ChartsDemo> {
       seriesList,
       animate: true,
       vertical: false,
+
       /// Assign a custom style for the measure axis.
       primaryMeasureAxis:
           new charts.NumericAxisSpec(renderSpec: new charts.NoneRenderSpec()),
       domainAxis: new charts.OrdinalAxisSpec(
           showAxisLine: true,
-          
           renderSpec: new charts.GridlineRendererSpec(
-        // Display the measure axis labels below the gridline.
-        //
-        // 'Before' & 'after' follow the axis value direction.
-        // Vertical axes draw 'before' below & 'after' above the tick.
-        // Horizontal axes draw 'before' left & 'after' right the tick.
+              // Display the measure axis labels below the gridline.
+              //
+              // 'Before' & 'after' follow the axis value direction.
+              // Vertical axes draw 'before' below & 'after' above the tick.
+              // Horizontal axes draw 'before' left & 'after' right the tick.
 
-        // Left justify the text in the axis.
-        //
-        // Note: outside means that the secondary measure axis would right
-        // justify.
-      )),
-          
+              // Left justify the text in the axis.
+              //
+              // Note: outside means that the secondary measure axis would right
+              // justify.
+              )),
     );
   }
 

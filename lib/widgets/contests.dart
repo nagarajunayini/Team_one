@@ -29,8 +29,7 @@ class Contests extends StatefulWidget {
   final dynamic comments;
   final String contestType;
   final bool contestExpired;
-  final int  contestExpiredIn;
-
+  final int contestExpiredIn;
 
   Contests(
       {this.contestId,
@@ -118,7 +117,7 @@ class Contests extends StatefulWidget {
       disLikesCount: getDislikesCount(this.disLikes),
       likeCount: getLikeCount(this.likes),
       comments: this.comments,
-      contestType:this.contestType,
+      contestType: this.contestType,
       contestExpired: this.contestExpired,
       contestExpiredIn: this.contestExpiredIn,
       commentCount: getCommentCount(this.comments));
@@ -285,7 +284,9 @@ class _ContestsState extends State<Contests> {
   handleLikePost() {
     bool _isLiked = likes[currentUserId] == true;
     if (_isLiked) {
-      userContestRef.document(contestId).updateData({'likes.$currentUserId': false});
+      userContestRef
+          .document(contestId)
+          .updateData({'likes.$currentUserId': false});
       removeLikeFromActivityFeed();
       setState(() {
         likeCount -= 1;
@@ -294,7 +295,9 @@ class _ContestsState extends State<Contests> {
       });
       removelike();
     } else if (!_isLiked) {
-      userContestRef.document(contestId).updateData({'likes.$currentUserId': true});
+      userContestRef
+          .document(contestId)
+          .updateData({'likes.$currentUserId': true});
       addLikeToActivityFeed();
       addlike();
       setState(() {
@@ -526,15 +529,14 @@ class _ContestsState extends State<Contests> {
                       Icons.thumb_up,
                       size: 28.0,
                       color: Colors.green,
-                    )
-                    ): GestureDetector(
-                              onTap: handleLikePost,
-                              child: Icon(
-                                Icons.thumb_up,
-                                size: 28.0,
-                                color: Colors.grey,
-                              )
-                              ),
+                    ))
+                : GestureDetector(
+                    onTap: handleLikePost,
+                    child: Icon(
+                      Icons.thumb_up,
+                      size: 28.0,
+                      color: Colors.grey,
+                    )),
             Padding(padding: EdgeInsets.only(top: 40.0, left: 150.0)),
             GestureDetector(
               onTap: () => showComments(
@@ -551,31 +553,30 @@ class _ContestsState extends State<Contests> {
             ),
           ],
         ),
-          Row(
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(left: 20.0),
-                child: Text(
-                  "$likeCount likes",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+        Row(
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.only(left: 20.0),
+              child: Text(
+                "$likeCount likes",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Container(
-                margin: EdgeInsets.only(left: 200.0),
-                child: Text(
-                  "$commentCount comments",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+            ),
+            Container(
+              margin: EdgeInsets.only(left: 200.0),
+              child: Text(
+                "$commentCount comments",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
-        
+            ),
+          ],
+        ),
       ],
     );
   }

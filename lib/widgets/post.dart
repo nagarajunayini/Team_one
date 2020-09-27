@@ -5,16 +5,22 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttershare/models/poolAmount.dart';
+import 'package:fluttershare/models/rules.dart';
+import 'package:fluttershare/models/teamOneWallet.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/activity_feed.dart';
 import 'package:fluttershare/pages/comments.dart';
 import 'package:fluttershare/pages/home.dart';
+import 'package:fluttershare/pages/home.dart' as prefix0;
+import 'package:fluttershare/pages/postExpiryTimer.dart';
 import 'package:fluttershare/pages/postreaction_chart.dart';
 import 'package:fluttershare/pages/showLikes.dart';
 import 'package:fluttershare/widgets/custom_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:video_player/video_player.dart';
 
 class Post extends StatefulWidget {
   final String postId;
@@ -25,8 +31,12 @@ class Post extends StatefulWidget {
   final String description;
   final String mediaUrl;
   final dynamic likes;
+  final dynamic noComments;
   final dynamic disLikes;
   final dynamic comments;
+  final String postType;
+  final int postValue;
+  final int postDeductionValue;
 
   Post(
       {this.postId,
@@ -38,21 +48,28 @@ class Post extends StatefulWidget {
       this.mediaUrl,
       this.likes,
       this.disLikes,
-      this.comments});
+      this.noComments,
+      this.comments,
+      this.postType,
+      this.postValue,
+      this.postDeductionValue});
 
   factory Post.fromDocument(DocumentSnapshot doc) {
     return Post(
-      postId: doc['postId'],
-      ownerId: doc['ownerId'],
-      username: doc['username'],
-      location: doc['location'],
-      timestamp: doc['timestamp'],
-      description: doc['description'],
-      mediaUrl: doc['mediaUrl'],
-      likes: doc['likes'],
-      disLikes: doc['disLikes'],
-      comments: doc['comments'],
-    );
+        postId: doc['postId'],
+        ownerId: doc['ownerId'],
+        username: doc['username'],
+        location: doc['location'],
+        timestamp: doc['timestamp'],
+        description: doc['description'],
+        mediaUrl: doc['mediaUrl'],
+        likes: doc['likes'],
+        disLikes: doc['disLikes'],
+        noComments: doc['noComments'],
+        comments: doc['comments'],
+        postType: doc['postType'],
+        postValue: doc['postValue'],
+        postDeductionValue: doc['postDeductionValue']);
   }
 
   int getLikeCount(likes) {
@@ -61,6 +78,19 @@ class Post extends StatefulWidget {
     }
     int count = 0;
     likes.values.forEach((val) {
+      if (val == true) {
+        count += 1;
+      }
+    });
+    return count;
+  }
+
+  int getNoCommentsCount(noCommetns) {
+    if (noCommetns == null) {
+      return 0;
+    }
+    int count = 0;
+    noCommetns.values.forEach((val) {
       if (val == true) {
         count += 1;
       }
@@ -104,10 +134,15 @@ class Post extends StatefulWidget {
       description: this.description,
       mediaUrl: this.mediaUrl,
       likes: this.likes,
+      noComments: this.noComments,
+      noCommentsCount: getNoCommentsCount(this.noComments),
       disLikes: this.disLikes,
       disLikesCount: getDislikesCount(this.disLikes),
       likeCount: getLikeCount(this.likes),
       comments: this.comments,
+      postType: this.postType,
+      postValue: this.postValue,
+      postDeductionValue: this.postDeductionValue,
       commentCount: getCommentCount(this.comments));
 }
 
@@ -123,13 +158,26 @@ class _PostState extends State<Post> {
   bool showHeart = false;
   bool isLiked;
   bool isDisLiked;
+  bool isNoComment;
   int likeCount;
   int disLikesCount;
   Map disLikes;
   int commentCount;
+  int noCommentsCount;
+  Map noComments;
   Map likes;
   Map comments;
-
+  int postValue;
+  int postDeductionValue;
+  final String postType;
+  List<Rules> rules = [];
+  List<TeamOneWallet> teamOneWallet = [];
+  List<PoolAmount> poolAmount = [];
+  int userValue;
+  int userPostdeductionValue;
+  List<User> userData = [];
+  VideoPlayerController _videoPlayerController;
+  Future<void> futureController;
   _PostState(
       {this.postId,
       this.ownerId,
@@ -143,37 +191,66 @@ class _PostState extends State<Post> {
       this.disLikesCount,
       this.likeCount,
       this.commentCount,
-      this.comments});
+      this.comments,
+      this.noComments,
+      this.noCommentsCount,
+      this.postValue,
+      this.postDeductionValue,
+      this.postType});
+  @override
+  void initState() {
+    super.initState();
+    getRules();
+  }
 
   static List<charts.Series<PostReactions, String>> _createRandomData(
-      likes, dislikes) {
-    final desktopSalesData = [
-      PostReactions('Likes', likes),
-      PostReactions('disLikes', dislikes),
+      likes, dislikes, noComments) {
+    final likesCountData = [
+      new PostReactions('reactions', likes),
     ];
+    final disLikesCountData = [
+      new PostReactions('reactions', dislikes),
+    ];
+
+    final noCommentsCountData = [
+      new PostReactions('reactions', noComments),
+    ];
+
     return [
       charts.Series<PostReactions, String>(
-          id: 'postReactions',
+          id: 'Likes',
           domainFn: (PostReactions reaction, _) => reaction.type,
           measureFn: (PostReactions reaction, _) => reaction.no,
-          data: desktopSalesData,
+          data: likesCountData,
           fillColorFn: (PostReactions reaction, _) {
-            switch (reaction.type) {
-              case "Likes":
-                {
-                  return charts.MaterialPalette.green.shadeDefault;
-                }
-              case "disLikes":
-                {
-                  return charts.MaterialPalette.red.shadeDefault;
-                }
-              default:
-                {
-                  return charts.MaterialPalette.blue.shadeDefault;
-                }
-            }
+            return charts.MaterialPalette.green.shadeDefault;
+          }),
+      new charts.Series<PostReactions, String>(
+          id: 'Dislikes',
+          domainFn: (PostReactions reaction, _) => reaction.type,
+          measureFn: (PostReactions reaction, _) => reaction.no,
+          data: disLikesCountData,
+          fillColorFn: (PostReactions reaction, _) {
+            return charts.MaterialPalette.red.shadeDefault;
+          }),
+      new charts.Series<PostReactions, String>(
+          id: 'Nota',
+          domainFn: (PostReactions reaction, _) => reaction.type,
+          measureFn: (PostReactions reaction, _) => reaction.no,
+          data: noCommentsCountData,
+          fillColorFn: (PostReactions reaction, _) {
+            return charts.MaterialPalette.deepOrange.shadeDefault;
           }),
     ];
+  }
+
+  getRules() async {
+    QuerySnapshot snapshot = await rulesRef.getDocuments();
+    setState(() {
+      rules.addAll(
+          snapshot.documents.map((doc) => Rules.fromDocument(doc)).toList());
+      print(rules[0].applyType);
+    });
   }
 
   buildPostHeader() {
@@ -229,12 +306,9 @@ class _PostState extends State<Post> {
                 ),
               ])),
           subtitle: Text(timeago.format(timestamp.toDate())),
-          trailing: isPostOwner
-              ? IconButton(
-                  onPressed: () => handleDeletePost(context),
-                  icon: Icon(Icons.more_horiz),
-                )
-              : Text(''),
+          trailing: TimerApp(timestamp: timestamp, expiresIn: 48),
+          // OtpTimer(timestamp:timestamp),
+          // Text(TimerApp()),
         );
       },
     );
@@ -294,27 +368,38 @@ class _PostState extends State<Post> {
     });
   }
 
-  handleLikePost() {
-    bool _isLiked = likes[currentUserId] == true;
-
-    if (_isLiked) {
-      userPostRef.document(postId).updateData({'likes.$currentUserId': false});
-      removeLikeFromActivityFeed();
-      setState(() {
-        likeCount -= 1;
-        isLiked = false;
-        likes[currentUserId] = false;
-        // buildLikesDislikesGraph(likeCount,disLikesCount);
+  handleLikePost() async {
+    usersRef
+        .where("id", isEqualTo: currentUserId)
+        .getDocuments()
+        .then((QuerySnapshot snapshot) {
+      snapshot.documents.forEach((DocumentSnapshot doc) {
+        userData.add(User.fromDocument(doc));
+        getPostDeductionValueLike(
+            postDeductionValue, userData[0].referralPoints);
       });
-      removelike();
-    } else if (!_isLiked) {
-      userPostRef.document(postId).updateData({'likes.$currentUserId': true});
-      addLikeToActivityFeed();
-      addlike();
+    });
+  }
+
+  handleNoCommentPost() {
+    bool _isNoComment = noComments[currentUserId] == true;
+
+    // if (currentUser.referralPoints >= postDeductionValue) {
+    print("no dialog ****************************");
+
+    if (!_isNoComment) {
+      userPostRef
+          .document(postId)
+          .updateData({'noComments.$currentUserId': true});
+      addNoCommentToActivityFeed();
+      addNoComment();
+      // debitWalletAmount(postDeductionValue);
+      // addDebitedAmountToTeamOne(postDeductionValue);
+      // walletTransactions("like", postId, postDeductionValue);
       setState(() {
-        likeCount += 1;
-        isLiked = true;
-        likes[currentUserId] = true;
+        noCommentsCount += 1;
+        isNoComment = true;
+        noComments[currentUserId] = true;
         showHeart = true;
       });
       Timer(Duration(milliseconds: 500), () {
@@ -323,43 +408,137 @@ class _PostState extends State<Post> {
         });
       });
     }
+    // } else {
+    //   print("ShowDIalog ****************************");
+    //   _showMyDialog(
+    //       "Warning", "You do not have enough points to react this post.", "");
+    // }
   }
 
-  handleDisLikePost() {
-    print("hello");
-    bool _isDisLiked = disLikes[currentUserId] == true;
+  getPostDeductionValueLike(postDeductionValue, userWallet) {
+    bool _isLiked = likes[currentUserId] == true;
 
-    if (_isDisLiked) {
-      userPostRef
-          .document(postId)
-          .updateData({'disLikes.$currentUserId': false});
-      removeDisLikeFromActivityFeed();
-      setState(() {
-        disLikesCount -= 1;
-        isDisLiked = false;
-        disLikes[currentUserId] = false;
-        //  LikesAndDislikes(likes: likeCount, disLikes: disLikesCount);
-      });
-      removeDislike();
-    } else if (!_isDisLiked) {
-      userPostRef
-          .document(postId)
-          .updateData({'disLikes.$currentUserId': true});
-      addDisLikeToActivityFeed();
-      addDislike();
-      setState(() {
-        disLikesCount += 1;
-        isDisLiked = true;
-        disLikes[currentUserId] = true;
-        showHeart = true;
-        LikesAndDislikes(likes: likeCount, disLikes: disLikesCount);
-        // buildLikesDislikesGraph(likeCount, disLikesCount);
-      });
-      Timer(Duration(milliseconds: 500), () {
+    // if (_isLiked) {
+    //   userPostRef.document(postId).updateData({'likes.$currentUserId': false});
+    //   removeLikeFromActivityFeed();
+    //   setState(() {
+    //     likeCount -= 1;
+    //     isLiked = false;
+    //     likes[currentUserId] = false;
+    //   });
+    //   removelike();
+    // } else
+    if (userWallet >= postDeductionValue) {
+      if (!_isLiked) {
+        userPostRef.document(postId).updateData({'likes.$currentUserId': true});
+        addLikeToActivityFeed();
+        addlike();
+        debitWalletAmount(postDeductionValue, userWallet);
+        addDebitedAmountToPostPoolingAmount(postDeductionValue, postId);
+        walletTransactions("like", postId, postDeductionValue);
         setState(() {
-          showHeart = false;
+          likeCount += 1;
+          isLiked = true;
+          likes[currentUserId] = true;
+          showHeart = true;
         });
+        Timer(Duration(milliseconds: 500), () {
+          setState(() {
+            showHeart = false;
+          });
+        });
+      }
+    } else {
+      print("ShowDIalog ****************************");
+      _showMyDialog(
+          "Warning", "You do not have enough points to react this post.", "");
+    }
+  }
+
+  Future<void> _showMyDialog(status, message, message1) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(status),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+                Text(message1),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Ok'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  handleDisLikePost() async {
+    usersRef
+        .where("id", isEqualTo: currentUserId)
+        .getDocuments()
+        .then((QuerySnapshot snapshot) {
+      snapshot.documents.forEach((DocumentSnapshot doc) {
+        userData.add(User.fromDocument(doc));
+
+        getPostDeductionValueForDisLike(
+            postDeductionValue, userData[0].referralPoints);
       });
+    });
+  }
+
+  getPostDeductionValueForDisLike(postDeductionValue, userWallet) {
+    bool _isDisLiked = disLikes[currentUserId] == true;
+    // if (_isDisLiked) {
+    //   userPostRef
+    //       .document(postId)
+    //       .updateData({'disLikes.$currentUserId': false});
+    //   removeDisLikeFromActivityFeed();
+    //   setState(() {
+    //     disLikesCount -= 1;
+    //     isDisLiked = false;
+    //     disLikes[currentUserId] = false;
+    //     //  LikesAndDislikes(likes: likeCount, disLikes: disLikesCount);
+    //   });
+    //   removeDislike();
+    // } else
+    print(userWallet);
+    print(postDeductionValue);
+    if (userWallet >= postDeductionValue) {
+      if (!_isDisLiked) {
+        userPostRef
+            .document(postId)
+            .updateData({'disLikes.$currentUserId': true});
+        addDisLikeToActivityFeed();
+        addDislike();
+        debitWalletAmount(postDeductionValue, userWallet);
+        addDebitedAmountToPostPoolingAmount(postDeductionValue, postId);
+        walletTransactions("like", postId, postDeductionValue);
+        setState(() {
+          disLikesCount += 1;
+          isDisLiked = true;
+          disLikes[currentUserId] = true;
+          showHeart = true;
+        });
+        Timer(Duration(milliseconds: 500), () {
+          setState(() {
+            showHeart = false;
+          });
+        });
+      }
+    } else {
+      _showMyDialog(
+          "Warning", "You do not have enough points to react this post.", "");
     }
   }
 
@@ -367,6 +546,19 @@ class _PostState extends State<Post> {
     likesRef
         .document(postId)
         .collection("Likes")
+        .document(ownerId)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
+  }
+
+  removeNoComment() {
+    likesRef
+        .document(postId)
+        .collection("noComments")
         .document(ownerId)
         .get()
         .then((doc) {
@@ -389,11 +581,42 @@ class _PostState extends State<Post> {
     });
   }
 
+  debitWalletAmount(postDeductionValue, userWallet) {
+    print(postDeductionValue);
+    print("debitWalletAmount");
+    usersRef.document(currentUserId).setData({
+      "id": currentUser.id,
+      "username": currentUser.username,
+      "photoUrl": currentUser.photoUrl,
+      "email": currentUser.email,
+      "displayName": currentUser.displayName,
+      "bio": currentUser.bio,
+      "timestamp": timestamp,
+      "credits": currentUser.credits,
+      "referralPoints": userWallet - postDeductionValue,
+      "extraInfo": currentUser.extraInfo,
+    });
+  }
+
   addlike() {
     likesRef.document(postId).collection("Likes").document(ownerId).setData({
       "username": currentUser.username,
       "liked": true,
-      "timestamp": timestamp,
+      "timestamp": new DateTime.now(),
+      "avatarUrl": currentUser.photoUrl,
+      "userId": currentUser.id,
+    });
+  }
+
+  addNoComment() {
+    likesRef
+        .document(postId)
+        .collection("noComments")
+        .document(ownerId)
+        .setData({
+      "username": currentUser.username,
+      "noComment": true,
+      "timestamp": new DateTime.now(),
       "avatarUrl": currentUser.photoUrl,
       "userId": currentUser.id,
     });
@@ -407,10 +630,84 @@ class _PostState extends State<Post> {
         .setData({
       "username": currentUser.username,
       "disliked": true,
-      "timestamp": timestamp,
+      "timestamp": new DateTime.now(),
       "avatarUrl": currentUser.photoUrl,
       "userId": currentUser.id,
     });
+  }
+
+  walletTransactions(action, postId, postDeductionValue) {
+    print(action);
+    print(postId);
+    print(postDeductionValue);
+    print("walletTransactions");
+    walletTransactionRef.document(postId).setData({
+      "userId": ownerId,
+      "transactionType": "Debit",
+      "amount": postDeductionValue,
+      "reason":
+          action == "like" ? getLikeReason(postId) : getDisLikeReason(postId),
+    });
+  }
+
+  addDebitedAmountToPostPoolingAmount(userPostdeductionValue, postId) {
+    poolAmountRef
+        .where('postId', isEqualTo: postId)
+        .getDocuments()
+        .then((QuerySnapshot snapshot) {
+      snapshot.documents.forEach((DocumentSnapshot doc) {
+        poolAmount.add(PoolAmount.fromDocument(doc));
+
+        poolAmountRef.document(poolAmount[0].postId).setData({
+          "postAmount": poolAmount[0].postAmount + userPostdeductionValue,
+          "postId": postId
+        });
+      });
+    });
+  }
+
+  getLikeReason(postId) {
+    return "you liked the post:" + postId.toString();
+  }
+
+  getDisLikeReason(postId) {
+    return "you DisLiked the post:" + postId.toString();
+  }
+
+  addNoCommentToActivityFeed() {
+    // add a notification to the postOwner's activity feed only if comment made by OTHER user (to avoid getting notification for our own like)
+    bool isNotPostOwner = currentUserId != ownerId;
+    if (isNotPostOwner) {
+      activityFeedRef
+          .document(ownerId)
+          .collection("feedItems")
+          .document(postId)
+          .setData({
+        "type": "noComment",
+        "username": currentUser.username,
+        "userId": currentUser.id,
+        "userProfileImg": currentUser.photoUrl,
+        "postId": postId,
+        "mediaUrl": mediaUrl,
+        "timestamp": timestamp,
+      });
+    }
+  }
+
+  removeNoCommentFromActivityFeed() {
+    bool isNotPostOwner = currentUserId != ownerId;
+    if (isNotPostOwner) {
+      activityFeedRef
+          .document(ownerId)
+          .collection("feedItems")
+          .document(postId)
+          .get()
+          .then((doc) {
+        if (doc.exists) {
+          doc.reference.delete();
+        }
+      });
+    }
   }
 
   addLikeToActivityFeed() {
@@ -505,7 +802,7 @@ class _PostState extends State<Post> {
 
   buildPostImage() {
     return GestureDetector(
-      onDoubleTap: handleLikePost,
+      // onDoubleTap: handleLikePost,
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
@@ -531,6 +828,68 @@ class _PostState extends State<Post> {
     );
   }
 
+  buildPostVideo() {
+    print(mediaUrl);
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    _videoPlayerController = VideoPlayerController.network(
+      mediaUrl,
+    );
+
+    futureController = _videoPlayerController.initialize();
+    _videoPlayerController.play();
+
+    // print(mediaUrl);
+    // _videoPlayerController = VideoPlayerController.network(mediaUrl);
+    //   futureController = _videoPlayerController.initialize();
+    //   _videoPlayerController.setLooping(true);
+    //   _videoPlayerController.setVolume(25.0);
+    //   _videoPlayerController.play();
+    return FutureBuilder(
+      future: futureController,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          // If the VideoPlayerController has finished initialization, use
+          // the data it provides to limit the aspect ratio of the video.
+          return AspectRatio(
+            aspectRatio: _videoPlayerController.value.aspectRatio,
+            // Use the VideoPlayer widget to display the video.
+            child: VideoPlayer(_videoPlayerController),
+          );
+        } else {
+          // If the VideoPlayerController is still initializing, show a
+          // loading spinner.
+          return Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+    // floatingActionButton: FloatingActionButton(
+    //   onPressed: () {
+    //     // Wrap the play or pause in a call to `setState`. This ensures the
+    //     // correct icon is shown.
+    //     setState(() {
+    //       // If the video is playing, pause it.
+    //       if (_controller.value.isPlaying) {
+    //         _controller.pause();
+    //       } else {
+    //         // If the video is paused, play it.
+    //         _controller.play();
+    //       }
+    //     });
+    //   },
+    //   // Display the correct icon depending on the state of the player.
+    //   child: Icon(
+    //     _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+    //   ),
+    // ),
+  }
+
+  getvideo(mediaUrl) {
+    _videoPlayerController = VideoPlayerController.network(mediaUrl);
+    futureController = _videoPlayerController.initialize();
+    _videoPlayerController.setLooping(true);
+    _videoPlayerController.setVolume(25.0);
+  }
+
   buildPostFooter() {
     return Column(
       children: <Widget>[
@@ -553,27 +912,46 @@ class _PostState extends State<Post> {
                           size: 28.0,
                           color: Colors.red,
                         ))
-                    : Row(
-                        children: <Widget>[
-                          GestureDetector(
-                              onTap: handleLikePost,
-                              child: Icon(
-                                Icons.thumb_up,
-                                size: 28.0,
-                                color: Colors.grey,
-                              )),
-                          Padding(
-                              padding: EdgeInsets.only(top: 40.0, left: 80.0)),
-                          GestureDetector(
-                              onTap: handleDisLikePost,
-                              child: Icon(
-                                Icons.thumb_down,
-                                size: 28.0,
-                                color: Colors.grey,
-                              ))
-                        ],
-                      ),
-            Padding(padding: EdgeInsets.only(top: 40.0, left: 150.0)),
+                    : isNoComment
+                        ? GestureDetector(
+                            onTap: handleNoCommentPost,
+                            child: Icon(
+                              Icons.not_interested,
+                              size: 28.0,
+                              color: Colors.deepOrange,
+                            ))
+                        : Row(
+                            children: <Widget>[
+                              GestureDetector(
+                                  onTap: handleLikePost,
+                                  child: Icon(
+                                    Icons.thumb_up,
+                                    size: 28.0,
+                                    color: Colors.grey,
+                                  )),
+                              Padding(
+                                  padding:
+                                      EdgeInsets.only(top: 40.0, left: 80.0)),
+                              GestureDetector(
+                                  onTap: handleDisLikePost,
+                                  child: Icon(
+                                    Icons.thumb_down,
+                                    size: 28.0,
+                                    color: Colors.grey,
+                                  )),
+                              Padding(
+                                  padding:
+                                      EdgeInsets.only(top: 40.0, left: 80.0)),
+                              GestureDetector(
+                                  onTap: handleNoCommentPost,
+                                  child: Icon(
+                                    Icons.not_interested,
+                                    size: 28.0,
+                                    color: Colors.grey,
+                                  ))
+                            ],
+                          ),
+            Padding(padding: EdgeInsets.only(top: 40.0, left: 10.0)),
             GestureDetector(
               onTap: () => showComments(
                     context,
@@ -589,28 +967,39 @@ class _PostState extends State<Post> {
             ),
           ],
         ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                children: [
-                  Container(
-                    height: 100.0,
-                    child: barChart(likeCount, disLikesCount),
+        currentUserId == ownerId || isDisLiked || isLiked || isNoComment
+            ? Divider(
+                color: Colors.black,
+              )
+            : Divider(
+                color: Colors.transparent,
+              ),
+        currentUserId == ownerId || isDisLiked || isLiked || isNoComment
+            ? Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 70.0,
+                          child: barChart(
+                              likeCount, disLikesCount, noCommentsCount),
+                        )
+                      ],
+                    ),
                   )
                 ],
-              ),
-            )
-          ],
-        ),
+              )
+            : emptyWidget(),
       ],
     );
   }
 
-  barChart(likes, dislikes) {
+  barChart(likes, dislikes, noComments) {
     return new charts.BarChart(
-      _createRandomData(likes, dislikes),
+      _createRandomData(likes, dislikes, noComments),
       animate: true,
+      barGroupingType: charts.BarGroupingType.stacked,
       vertical: false,
       primaryMeasureAxis: new charts.NumericAxisSpec(
         renderSpec: new charts.NoneRenderSpec(),
@@ -623,7 +1012,7 @@ class _PostState extends State<Post> {
         ),
       ),
       domainAxis: new charts.OrdinalAxisSpec(
-          showAxisLine: true, renderSpec: new charts.GridlineRendererSpec()),
+          showAxisLine: true, renderSpec: new charts.NoneRenderSpec()),
     );
   }
 
@@ -631,15 +1020,17 @@ class _PostState extends State<Post> {
   Widget build(BuildContext context) {
     isLiked = (likes[currentUserId] == true);
     isDisLiked = (disLikes[currentUserId] == true);
+    isNoComment = (noComments[currentUserId] == true);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         buildPostHeader(),
         description != "" ? buildDescription() : emptyWidget(),
-        mediaUrl != "" ? buildPostImage() : emptyWidget(),
+        postType == ""
+            ? emptyWidget()
+            : postType == "image" ? buildPostImage() : buildPostVideo(),
         buildPostFooter(),
-        // buildLikesDislikesGraph(likeCount, disLikesCount),
         buildDevider()
       ],
     );
@@ -657,19 +1048,13 @@ showComments(BuildContext context,
   }));
 }
 
-buildLikesDislikesGraph(likes, dislikes) {
-  print('hello');
-  return Container(
-    height: 102.0,
-    child: LikesAndDislikes(likes: likes, disLikes: dislikes),
-  );
-}
-
 buildDevider() {
   return Container(
-      child: Divider(
-    color: Colors.black,
-  ));
+    height: 10.0,
+    decoration: new BoxDecoration(
+      color: Colors.grey,
+    ),
+  );
 }
 
 showlikes(BuildContext context,

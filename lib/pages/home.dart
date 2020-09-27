@@ -26,10 +26,15 @@ final currentWeekInfluencersRef =
     Firestore.instance.collection('currentWeekInfluencers');
 final likesRef = Firestore.instance.collection('likes');
 final disLikesRef = Firestore.instance.collection('Dislikes');
+final walletTransactionRef =
+    Firestore.instance.collection('walletTransactions');
+final teamOneWalletRef = Firestore.instance.collection('teamoneWallet');
+final poolAmountRef = Firestore.instance.collection('poolAmount');
 final activityFeedRef = Firestore.instance.collection('feed');
 final followersRef = Firestore.instance.collection('followers');
 final followingRef = Firestore.instance.collection('following');
 final timelineRef = Firestore.instance.collection('timeline');
+final rulesRef = Firestore.instance.collection('rules');
 final DateTime timestamp = DateTime.now();
 User currentUser;
 
@@ -126,11 +131,11 @@ class _HomeState extends State<Home> {
       // 2) if the user doesn't exist, then we want to take them to the create account page
       List<dynamic> userDetails = await Navigator.push(
           context, MaterialPageRoute(builder: (context) => CreateAccount()));
-       print(userDetails);
+      print(userDetails);
       // 3) get username from create account, use it to make new user document in users collection
       usersRef.document(user.id).setData({
         "id": user.id,
-        "username": userDetails[0] is String?userDetails[0]:userDetails[1],
+        "username": userDetails[0] is String ? userDetails[0] : userDetails[1],
         "photoUrl": user.photoUrl,
         "email": user.email,
         "displayName": user.displayName,
@@ -138,7 +143,7 @@ class _HomeState extends State<Home> {
         "timestamp": timestamp,
         "credits": "0",
         "referralPoints": 0,
-        "extraInfo":userDetails[0] is String?userDetails[1]:userDetails[0],
+        "extraInfo": userDetails[0] is String ? userDetails[1] : userDetails[0],
       });
       // make new user their own follower (to include their posts in their timeline)
       await followersRef
@@ -163,12 +168,11 @@ class _HomeState extends State<Home> {
     googleSignIn.signIn();
   }
 
-  openPhonePage(){
+  openPhonePage() {
     Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => LoginPage()),
-    
-  );
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
   }
 
   logout() {
@@ -229,7 +233,6 @@ class _HomeState extends State<Home> {
 
   Scaffold buildUnAuthScreen() {
     return Scaffold(
-        
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -268,7 +271,7 @@ class _HomeState extends State<Home> {
             //     ),
             //   ),
             // ),
-            
+
             GestureDetector(
               onTap: login,
               child: Container(

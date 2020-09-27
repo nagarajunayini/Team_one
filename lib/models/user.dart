@@ -11,29 +11,27 @@ class User {
   final num referralPoints;
   List<dynamic> extraInfo = [];
 
-  User({
-    this.id,
-    this.username,
-    this.email,
-    this.photoUrl,
-    this.displayName,
-    this.bio,
-    this.credits,
-    this.referralPoints,
-    this.extraInfo
-  });
+  User(
+      {this.id,
+      this.username,
+      this.email,
+      this.photoUrl,
+      this.displayName,
+      this.bio,
+      this.credits,
+      this.referralPoints,
+      this.extraInfo});
 
   factory User.fromDocument(DocumentSnapshot doc) {
     return User(
-      id: doc['id'],
-      email: doc['email'],
-      username: doc['username'],
-      photoUrl: doc['photoUrl'],
-      displayName: doc['displayName'],
-      bio: doc['bio'],
-      credits: doc['credits'],
-      referralPoints: doc['referralPoints'],
-      extraInfo:doc['extraInfo']
-    );
+        id: doc['id'],
+        email: doc['email'],
+        username: doc['username'],
+        photoUrl: doc['photoUrl'],
+        displayName: doc['displayName'],
+        bio: doc['bio'],
+        credits: doc['credits'],
+        referralPoints: doc['referralPoints'],
+        extraInfo: doc['extraInfo']);
   }
 }

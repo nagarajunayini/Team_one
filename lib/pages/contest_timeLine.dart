@@ -40,7 +40,7 @@ class _ContestTimelineState extends State<ContestTimeline> {
     usersRef
         .where("id", isEqualTo: currentUserId)
         .getDocuments()
-        .then((QuerySnapshot snapshot) { 
+        .then((QuerySnapshot snapshot) {
       snapshot.documents.forEach((DocumentSnapshot doc) {
         userData.add(User.fromDocument(doc));
         print(userData);
@@ -60,8 +60,7 @@ class _ContestTimelineState extends State<ContestTimeline> {
         future: usersRef.document(currentUserId).get(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return CircleAvatar(
-          );
+            return CircleAvatar();
           }
           User user = User.fromDocument(snapshot.data);
           return CircleAvatar(
@@ -76,13 +75,13 @@ class _ContestTimelineState extends State<ContestTimeline> {
     QuerySnapshot snapshot = await userContestRef
         .orderBy('timestamp', descending: true)
         .where("contestStatus", isEqualTo: "verified")
-        .where("contestExpired",isEqualTo: false)
+        .where("contestExpired", isEqualTo: false)
         .getDocuments();
     setState(() {
       isLoading = false;
       contests.addAll(
           snapshot.documents.map((doc) => Contests.fromDocument(doc)).toList());
-          print(contests);
+      print(contests);
       // posts.sort((a,b) => b.timestamp.compareTo(a.timestamp));
     });
   }
@@ -112,11 +111,9 @@ class _ContestTimelineState extends State<ContestTimeline> {
   }
 
   createPostInFirestore() {
-        String contestId= Uuid().v4();
+    String contestId = Uuid().v4();
     if (postController.text != "" && postController.text != null) {
-      userContestRef
-          .document(contestId)
-          .setData({
+      userContestRef.document(contestId).setData({
         "contestId": contestId,
         "ownerId": widget.currentUser.id,
         "username": widget.currentUser.username,
@@ -126,20 +123,18 @@ class _ContestTimelineState extends State<ContestTimeline> {
         "timestamp": timestamp,
         "contestStatus": "pending",
         "likes": {},
-        "disLikes":{},
+        "disLikes": {},
         "comments": {},
-        "contestType":"",
-        "contestExpired":false,
-        "contestExpiredIn":7
+        "contestType": "",
+        "contestExpired": false,
+        "contestExpiredIn": 7
       });
-     postController.clear();
-     _showMyDialog();
+      postController.clear();
+      _showMyDialog();
     }
-           
-
   }
 
-Future<void> _showMyDialog() async {
+  Future<void> _showMyDialog() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -166,6 +161,7 @@ Future<void> _showMyDialog() async {
       },
     );
   }
+
   buildProfilePosts() {
     if (isLoading) {
       return circularProgress();
@@ -205,20 +201,23 @@ Future<void> _showMyDialog() async {
       ),
       body: Column(
         children: <Widget>[
-        widget.currentUser.credits=='1'?  ListTile(
-            title: TextFormField(
-              controller: postController,
-              decoration: InputDecoration(labelText: "Write a contest..."),
-            ),
-            trailing: OutlineButton(
-              onPressed: createPostInFirestore,
-              borderSide: BorderSide.none,
-              child: IconButton(
-                icon: Icon(Icons.send),
-                color: Colors.blue,
-                ),
-            ),
-          ):Divider(),
+          widget.currentUser.credits == '1'
+              ? ListTile(
+                  title: TextFormField(
+                    controller: postController,
+                    decoration:
+                        InputDecoration(labelText: "Write a contest..."),
+                  ),
+                  trailing: OutlineButton(
+                    onPressed: createPostInFirestore,
+                    borderSide: BorderSide.none,
+                    child: IconButton(
+                      icon: Icon(Icons.send),
+                      color: Colors.blue,
+                    ),
+                  ),
+                )
+              : Divider(),
           Expanded(
             child: ListView(
               children: <Widget>[

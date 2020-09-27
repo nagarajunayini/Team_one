@@ -35,9 +35,9 @@ class _EditProfileState extends State<EditProfile> {
     "Kerala",
     "Others"
   ];
-  String selectedGender ;
+  String selectedGender;
   String selectedReligion;
-  String selectedCity ;
+  String selectedCity;
 
   @override
   void initState() {
@@ -52,31 +52,26 @@ class _EditProfileState extends State<EditProfile> {
     DocumentSnapshot doc = await usersRef.document(widget.currentUserId).get();
     user = User.fromDocument(doc);
     displayNameController.text = user.username;
-    if(user.extraInfo!=null && user.extraInfo.length>=1){
-      user.extraInfo.forEach((a)=>{
-      if(this.city.indexOf(a)>-1){
-        this.selectedCity = a
-      } else if(this.gender.indexOf(a)>-1){
-        this.selectedGender = a
-      }else{
-        this.selectedReligion =a
-      }
-    });
-    }else{
+    if (user.extraInfo != null && user.extraInfo.length >= 1) {
+      user.extraInfo.forEach((a) => {
+            if (this.city.indexOf(a) > -1)
+              {this.selectedCity = a}
+            else
+              if (this.gender.indexOf(a) > -1)
+                {this.selectedGender = a}
+              else
+                {this.selectedReligion = a}
+          });
+    } else {
       this.selectedGender = "Male";
       this.selectedReligion = "Hindu";
       this.selectedCity = "Hyderabad";
     }
-    
-  
-    
+
     setState(() {
       isLoading = false;
     });
   }
-
-  
-
 
   updateProfileData() {
     setState(() {
@@ -92,7 +87,11 @@ class _EditProfileState extends State<EditProfile> {
     if (_displayNameValid && _bioValid) {
       usersRef.document(widget.currentUserId).updateData({
         "displayName": displayNameController.text,
-        "extraInfo": [this.selectedCity,this.selectedGender,this.selectedReligion],
+        "extraInfo": [
+          this.selectedCity,
+          this.selectedGender,
+          this.selectedReligion
+        ],
       });
       SnackBar snackbar = SnackBar(content: Text("Profile updated!"));
       _scaffoldKey.currentState.showSnackBar(snackbar);
@@ -130,149 +129,156 @@ class _EditProfileState extends State<EditProfile> {
       body: isLoading
           ? circularProgress()
           : ListView(
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.only(top: 20.0),
-            child: Column(
               children: <Widget>[
-                GestureDetector(
-                  onTap: () {
-                    //do what you want here
-                  },
-                  child: CircleAvatar(
-                    radius: 50.0,
+                Container(
+                  padding: EdgeInsets.only(top: 20.0),
+                  child: Column(
+                    children: <Widget>[
+                      GestureDetector(
+                        onTap: () {
+                          //do what you want here
+                        },
+                        child: CircleAvatar(
+                          radius: 50.0,
                           backgroundImage:
                               CachedNetworkImageProvider(user.photoUrl),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: TextFormField(
+                          controller: displayNameController,
+                          decoration: InputDecoration(labelText: "userName"),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Padding(
+                              padding: EdgeInsets.only(top: 0.0, left: 0.0)),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 10.0,
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Gender:",
+                                style: TextStyle(fontSize: 20.0),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                              padding: EdgeInsets.only(
+                                  top: 60.0, left: 150.0, right: 10.0)),
+                          DropdownButton<String>(
+                            items: gender.map((String dropdownItem) {
+                              return DropdownMenuItem<String>(
+                                  value: dropdownItem,
+                                  child: Text(dropdownItem));
+                            }).toList(),
+                            onChanged: (String selectedValue) {
+                              setState(() {
+                                this.selectedGender = selectedValue;
+                              });
+                            },
+                            value: this.selectedGender,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Padding(
+                              padding: EdgeInsets.only(top: 0.0, left: 0.0)),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 10.0,
+                            ),
+                            child: Center(
+                              child: Text(
+                                "City:",
+                                style: TextStyle(fontSize: 20.0),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                              padding: EdgeInsets.only(
+                                  top: 60.0, left: 150.0, right: 10.0)),
+                          DropdownButton<String>(
+                            items: city.map((String dropdownItem) {
+                              return DropdownMenuItem<String>(
+                                  value: dropdownItem,
+                                  child: Text(dropdownItem));
+                            }).toList(),
+                            onChanged: (String selectedValue) {
+                              setState(() {
+                                this.selectedCity = selectedValue;
+                              });
+                            },
+                            value: this.selectedCity,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Padding(
+                              padding: EdgeInsets.only(
+                                  top: 0.0, left: 0.0, bottom: 20.0)),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 10.0,
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Religion:",
+                                style: TextStyle(fontSize: 20.0),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                              padding: EdgeInsets.only(
+                                  top: 60.0, left: 150.0, right: 10.0)),
+                          DropdownButton<String>(
+                            items: religion.map((String dropdownItem) {
+                              return DropdownMenuItem<String>(
+                                  value: dropdownItem,
+                                  child: Text(dropdownItem));
+                            }).toList(),
+                            onChanged: (String selectedValue) {
+                              setState(() {
+                                this.selectedReligion = selectedValue;
+                              });
+                            },
+                            value: this.selectedReligion,
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: updateProfileData,
+                        child: Container(
+                          height: 50.0,
+                          width: 350.0,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(7.0),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Update",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: TextFormField(
-                      controller: displayNameController,
-                      decoration: InputDecoration(labelText: "userName"),   
-                ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Padding(padding: EdgeInsets.only(top: 0.0, left: 0.0)),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 10.0,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Gender:",
-                          style: TextStyle(fontSize: 20.0),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                        padding: EdgeInsets.only(
-                            top: 60.0, left: 150.0, right: 10.0)),
-                    DropdownButton<String>(
-                      items: gender.map((String dropdownItem) {
-                        return DropdownMenuItem<String>(
-                            value: dropdownItem, child: Text(dropdownItem));
-                      }).toList(),
-                      onChanged: (String selectedValue) {
-                        setState(() {
-                          this.selectedGender = selectedValue;
-                        });
-                      },
-                      value: this.selectedGender,
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Padding(padding: EdgeInsets.only(top: 0.0, left: 0.0)),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 10.0,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "City:",
-                          style: TextStyle(fontSize: 20.0),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                        padding: EdgeInsets.only(
-                            top: 60.0, left: 150.0, right: 10.0)),
-                    DropdownButton<String>(
-                      items: city.map((String dropdownItem) {
-                        return DropdownMenuItem<String>(
-                            value: dropdownItem, child: Text(dropdownItem));
-                      }).toList(),
-                      onChanged: (String selectedValue) {
-                        setState(() {
-                          this.selectedCity = selectedValue;
-                        });
-                      },
-                      value: this.selectedCity,
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Padding(padding: EdgeInsets.only(top: 0.0, left: 0.0,bottom:20.0)),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 10.0,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Religion:",
-                          style: TextStyle(fontSize: 20.0),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                        padding: EdgeInsets.only(
-                            top: 60.0, left: 150.0, right: 10.0)),
-                    DropdownButton<String>(
-                      items: religion.map((String dropdownItem) {
-                        return DropdownMenuItem<String>(
-                            value: dropdownItem, child: Text(dropdownItem));
-                      }).toList(),
-                      onChanged: (String selectedValue) {
-                        setState(() {
-                          this.selectedReligion = selectedValue;
-                        });
-                      },
-                      value: this.selectedReligion,
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: updateProfileData,
-                  child: Container(
-                    height: 50.0,
-                    width: 350.0,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(7.0),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Update",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
+                )
               ],
             ),
-          )
-        ],
-      ),
     );
   }
 }

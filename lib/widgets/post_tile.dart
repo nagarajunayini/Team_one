@@ -13,9 +13,9 @@ class PostTile extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PostScreen(
-          postId: post.postId,
-          userId: post.ownerId,
-        ),
+              postId: post.postId,
+              userId: post.ownerId,
+            ),
       ),
     );
   }

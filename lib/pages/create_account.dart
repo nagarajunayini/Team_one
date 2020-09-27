@@ -13,8 +13,8 @@ class _CreateAccountState extends State<CreateAccount> {
   TextEditingController displayNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String username;
-  List<dynamic> userDetails=[];
-  List<dynamic> extraIfo=[];
+  List<dynamic> userDetails = [];
+  List<dynamic> extraIfo = [];
   var gender = ["Male", "Female", "Others"];
   var religion = ["Hindu", "Muslim", "Christian", "Others"];
   var city = [
@@ -31,14 +31,18 @@ class _CreateAccountState extends State<CreateAccount> {
   String selectedCity = "Hyderabad";
 
   submit() {
-     this.extraIfo=[this.selectedCity,this.selectedGender,this.selectedReligion];
-     this.userDetails=[displayNameController.text,this.extraIfo];
-     String name = displayNameController.text;
-     SnackBar snackbar = SnackBar(content: Text("Welcome $name!"));
-      _scaffoldKey.currentState.showSnackBar(snackbar);
-      Timer(Duration(seconds: 2), () {
-        Navigator.pop(context, this.userDetails);
-      });
+    this.extraIfo = [
+      this.selectedCity,
+      this.selectedGender,
+      this.selectedReligion
+    ];
+    this.userDetails = [displayNameController.text, this.extraIfo];
+    String name = displayNameController.text;
+    SnackBar snackbar = SnackBar(content: Text("Welcome $name!"));
+    _scaffoldKey.currentState.showSnackBar(snackbar);
+    Timer(Duration(seconds: 2), () {
+      Navigator.pop(context, this.userDetails);
+    });
   }
 
   @override
@@ -66,9 +70,9 @@ class _CreateAccountState extends State<CreateAccount> {
                 Padding(
                   padding: EdgeInsets.all(16.0),
                   child: TextFormField(
-                      controller: displayNameController,
-                      decoration: InputDecoration(labelText: "userName"),   
-                ),
+                    controller: displayNameController,
+                    decoration: InputDecoration(labelText: "userName"),
+                  ),
                 ),
                 // Padding(
                 //   padding: EdgeInsets.all(16.0),
@@ -196,7 +200,9 @@ class _CreateAccountState extends State<CreateAccount> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Padding(padding: EdgeInsets.only(top: 0.0, left: 0.0,bottom:20.0)),
+                    Padding(
+                        padding:
+                            EdgeInsets.only(top: 0.0, left: 0.0, bottom: 20.0)),
                     Padding(
                       padding: EdgeInsets.only(
                         top: 10.0,

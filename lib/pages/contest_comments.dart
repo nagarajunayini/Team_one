@@ -18,7 +18,7 @@ class ContestComments extends StatefulWidget {
   });
 
   @override
- ContestCommentsState createState() => ContestCommentsState(
+  ContestCommentsState createState() => ContestCommentsState(
         postId: this.postId,
         postOwnerId: this.postOwnerId,
         postMediaUrl: this.postMediaUrl,
@@ -68,15 +68,15 @@ class ContestCommentsState extends State<ContestComments> {
     });
     String commentText = commentController.text;
     userContestRef
-          // .document(postOwnerId)
-          // .collection('userPosts')
-          .document(postId)
-          .updateData({'comments.$commentText': true});
-          //  userContestRef
-          // // .document(postOwnerId)
-          // // .collection('userPosts')
-          // .document(postId)
-          // .updateData({'comments.$commentText': true});
+        // .document(postOwnerId)
+        // .collection('userPosts')
+        .document(postId)
+        .updateData({'comments.$commentText': true});
+    //  userContestRef
+    // // .document(postOwnerId)
+    // // .collection('userPosts')
+    // .document(postId)
+    // .updateData({'comments.$commentText': true});
     bool isNotPostOwner = postOwnerId != currentUser.id;
     if (isNotPostOwner) {
       activityFeedRef.document(postOwnerId).collection('feedItems').add({

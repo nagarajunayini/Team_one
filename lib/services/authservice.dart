@@ -23,7 +23,6 @@ class AuthService {
   //SignIn
   signIn(AuthCredential authCreds) {
     FirebaseAuth.instance.signInWithCredential(authCreds);
-    
   }
 
   signInWithOTP(smsCode, verId) {

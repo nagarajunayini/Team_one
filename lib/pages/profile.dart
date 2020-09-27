@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/edit_profile.dart';
 import 'package:fluttershare/pages/home.dart';
+import 'package:fluttershare/pages/sidebar.dart';
 // import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/widgets/post.dart';
 import 'package:fluttershare/widgets/post_tile.dart';
@@ -284,51 +285,17 @@ class _ProfileState extends State<Profile> {
                     ),
                   ],
                 ),
-                Container(
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(top: 12.0),
-                  child: Text(
-                    user.username,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
-                    ),
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    "Wallet Points: " + user.referralPoints.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    RaisedButton(
-                        color: Colors.greenAccent,
-                        onPressed: generateShortDeepLink,
-                        child: Text(
-                          'Refer',
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        )),
-                    RaisedButton(
-                      color: Colors.red,
-                      onPressed: logout,
-                      child: Text(
-                        'Logout',
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                )
+                // Container(
+                //   alignment: Alignment.centerLeft,
+                //   padding: EdgeInsets.only(top: 10.0),
+                //   child: Text(
+                //     user.username,
+                //     style: TextStyle(
+                //       fontWeight: FontWeight.bold,
+                //       fontSize: 16.0,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           );
@@ -484,18 +451,22 @@ class _ProfileState extends State<Profile> {
 //       appBar: AppBar(
 
 // ),
-      // appBar: header(context, titleText: "Profile"),
-      body: ListView(
-        children: <Widget>[
-          buildProfileHeader(),
-          Divider(),
-          buildTogglePostOrientation(),
-          Divider(
-            height: 0.0,
-          ),
-          buildProfilePosts(),
-        ],
-      ),
-    );
+        // appBar: header(context, titleText: "Profile"),
+        body: Stack(
+      children: <Widget>[
+        ListView(
+          children: <Widget>[
+            buildProfileHeader(),
+            Divider(),
+            buildTogglePostOrientation(),
+            Divider(
+              height: 0.0,
+            ),
+            buildProfilePosts(),
+          ],
+        ),
+        SideBar(currentUserId: currentUserId)
+      ],
+    ));
   }
 }
