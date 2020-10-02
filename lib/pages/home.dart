@@ -35,6 +35,7 @@ final followersRef = Firestore.instance.collection('followers');
 final followingRef = Firestore.instance.collection('following');
 final timelineRef = Firestore.instance.collection('timeline');
 final rulesRef = Firestore.instance.collection('rules');
+final categoriesRef = Firestore.instance.collection('categories');
 final DateTime timestamp = DateTime.now();
 User currentUser;
 
@@ -46,7 +47,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
-  bool isAuth = false;
+  String isAuth = "";
   PageController pageController;
   int pageIndex = 0;
 
@@ -72,12 +73,12 @@ class _HomeState extends State<Home> {
     if (account != null) {
       await createUserInFirestore();
       setState(() {
-        isAuth = true;
+        isAuth = "true";
       });
       configurePushNotifications();
     } else {
       setState(() {
-        isAuth = false;
+        isAuth = "false";
       });
     }
   }
@@ -200,7 +201,7 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           Timeline(currentUser: currentUser),
           ContestTimeline(currentUser: currentUser),
-          Upload(currentUser: currentUser),
+          // Upload(currentUser: currentUser),
           // Search(),
           Profile(profileId: currentUser?.id),
         ],
@@ -215,12 +216,12 @@ class _HomeState extends State<Home> {
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home)),
             BottomNavigationBarItem(icon: Icon(Icons.stars)),
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.photo_camera,
-                size: 35.0,
-              ),
-            ),
+            // BottomNavigationBarItem(
+            //   icon: Icon(
+            //     Icons.photo_camera,
+            //     size: 35.0,
+            //   ),
+            // ),
             // BottomNavigationBarItem(icon: Icon(Icons.search)),
             BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
           ]),
@@ -229,6 +230,79 @@ class _HomeState extends State<Home> {
     //   child: Text('Logout'),
     //   onPressed: logout,
     // );
+  }
+  Scaffold buildSpalshScreen(){
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          Container(
+            decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Theme.of(context).accentColor,
+              Theme.of(context).primaryColor,
+            ],
+          ),
+        ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                flex: 2,
+                child: Container(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 50.0,
+  backgroundImage: AssetImage('assets/images/appicon.png'),
+),
+
+                      Padding(
+                        padding: EdgeInsets.only(top: 10.0),
+                      ),
+                      Text(
+                        "Team One",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24.0),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    CircularProgressIndicator(),
+                    Padding(
+                      padding: EdgeInsets.only(top: 20.0),
+                    ),
+                    // Text(
+                    //   Flutkart.store,
+                    //   softWrap: true,
+                    //   textAlign: TextAlign.center,
+                    //   style: TextStyle(
+                    //       fontWeight: FontWeight.bold,
+                    //       fontSize: 18.0,
+                    //       color: Colors.white),
+                    // )
+                  ],
+                ),
+              )
+            ],
+          )
+        ],
+      ),
+    );
   }
 
   Scaffold buildUnAuthScreen() {
@@ -295,6 +369,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return isAuth ? buildAuthScreen() : buildUnAuthScreen();
+    return isAuth=="" ? buildSpalshScreen():isAuth=="true"? buildAuthScreen() : buildUnAuthScreen();
   }
 }

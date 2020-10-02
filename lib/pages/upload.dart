@@ -42,12 +42,14 @@ class _UploadState extends State<Upload>
   List<Rules> rules = [];
   int userValue = 0;
   File _video;
+  int k = -1;
   List<TeamOneWallet> teamOneWallet = [];
   List<PostValues> postValues = [];
   int selectedPostValue;
   int selectedPostDeductionValue;
   int defaultIndex = 0;
   String postId = Uuid().v4();
+  final List<int> numbers = [10, 1000, 2000, 3000, 4000, 5000];
   @override
   void initState() {
     super.initState();
@@ -226,15 +228,24 @@ class _UploadState extends State<Upload>
   buildSplashScreen() {
     return Column(
       children: <Widget>[
-        Padding(padding: EdgeInsets.only(top: 100.0)),
+        Padding(padding: EdgeInsets.only(top: 40.0)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             Container(
-              child: TextField(
-                maxLines: 3,
-                controller: captionController,
-                decoration: InputDecoration(hintText: 'Enter Text Here'),
+              child: TextFormField(
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      // width: 0.0 produces a thin "hairline" border
+                      borderRadius: BorderRadius.all(Radius.circular(90.0)),
+                      borderSide: BorderSide(color: Colors.black),
+                      //borderSide: const BorderSide(),
+                    ),
+                    hintStyle: TextStyle(
+                        color: Colors.white, fontFamily: "WorkSansLight"),
+                    filled: true,
+                    fillColor: Colors.white24,
+                    hintText: 'Password'),
               ),
               width: MediaQuery.of(context).size.width * 0.7,
             ),
@@ -252,48 +263,129 @@ class _UploadState extends State<Upload>
             ),
           ],
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FlatButton(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                  side: BorderSide(color: Colors.black)),
+              color: Colors.white,
+              textColor: Colors.grey,
+              padding: EdgeInsets.all(8.0),
+              onPressed: () => selectImage(context),
+              child: Text(
+                "Photo".toUpperCase(),
+                style: TextStyle(
+                  fontSize: 9.0,
+                ),
+              ),
+            ),
+            SizedBox(width: 10),
+            FlatButton(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                  side: BorderSide(color: Colors.black)),
+              color: Colors.white,
+              textColor: Colors.grey,
+              padding: EdgeInsets.all(8.0),
+              onPressed: () => selectVideo(context),
+              child: Text(
+                "Video".toUpperCase(),
+                style: TextStyle(
+                  fontSize: 9.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: 20.0),
+        ),
+        // Row(
+        //   children: [
+        //     Padding(padding: EdgeInsets.only(left: 80.0)),
+        //     RaisedButton(
+        //         shape: RoundedRectangleBorder(
+        //           borderRadius: BorderRadius.circular(8.0),
+        //         ),
+        //         child: Text(
+        //           "Upload Image",
+        //           style: TextStyle(
+        //             color: Colors.white,
+        //             fontSize: 22.0,
+        //           ),
+        //         ),
+        //         color: Colors.deepOrange,
+        //         onPressed: () => selectImage(context))
+        //   ],
+        // ),
         Padding(
           padding: EdgeInsets.only(top: 20.0),
         ),
         Row(
           children: [
             Padding(padding: EdgeInsets.only(left: 80.0)),
-            RaisedButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Text(
-                  "Upload Image",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22.0,
-                  ),
-                ),
-                color: Colors.deepOrange,
-                onPressed: () => selectImage(context))
+            Text("Choose Post Value:")
           ],
         ),
-        Padding(
-          padding: EdgeInsets.only(top: 20.0),
-        ),
-        Row(
-          children: [
-            Padding(padding: EdgeInsets.only(left: 80.0)),
-            RaisedButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Text(
-                  "Upload Video",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22.0,
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          height: MediaQuery.of(context).size.height * 0.12,
+          child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: numbers.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  // width: MediaQuery.of(context).size.width * 0.6,
+                  child: FlatButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                        side: BorderSide(color: Colors.black)),
+                    color: numbers[index] == k ? Colors.green : Colors.white,
+                    textColor: numbers[index] == k ? Colors.white : Colors.grey,
+                    padding: EdgeInsets.all(8.0),
+                    onPressed: () => {
+                          setState(() {
+                            k = numbers[index];
+                            numbers[index] = k;
+                          })
+                        },
+                    child: Text(
+                      numbers[index].toString().toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 9.0,
+                      ),
+                    ),
                   ),
-                ),
-                color: Colors.deepOrange,
-                onPressed: () => selectVideo(context))
-          ],
+                );
+              }),
         ),
+        // Row(children: <Widget>[
+        //   GridView.count(crossAxisCount: 3,
+        //   children: List.generate(10, (index){
+        //     return FlatButton(
+        //             shape: RoundedRectangleBorder(
+        //                 borderRadius: BorderRadius.circular(18.0),
+        //                 side: BorderSide(color: Colors.grey)),
+        //             color:Colors.white,
+        //             textColor: Colors.grey,
+        //             padding: EdgeInsets.all(8.0),
+        //             onPressed: () => {
+        //                   // setState(() {
+        //                   //   // k = numbers[index];
+        //                   //   // numbers[index] = k;
+        //                   // })
+        //                 },
+        //             child: Text(
+        //               index.toString().toUpperCase(),
+        //               style: TextStyle(
+        //                 fontSize: 9.0,
+        //               ),
+        //             ),
+        //           );          }),
+        //   )
+        // ],)
       ],
     );
   }

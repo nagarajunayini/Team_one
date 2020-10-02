@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttershare/models/postCategory.dart';
 import 'package:fluttershare/models/rules.dart';
 import 'package:fluttershare/models/teamOneWallet.dart';
 import 'package:fluttershare/models/user.dart';
@@ -8,10 +11,18 @@ import 'package:fluttershare/models/userLevels.dart';
 import 'package:fluttershare/pages/activity_feed.dart';
 import 'package:fluttershare/pages/home.dart';
 import 'package:fluttershare/pages/search.dart';
+import 'package:fluttershare/pages/upload.dart';
 // import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/widgets/post.dart';
 import 'package:fluttershare/widgets/progress.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+
+//=================================
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:video_player/video_player.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as Im;
 
 final usersRef = Firestore.instance.collection('users');
 
@@ -26,14 +37,18 @@ class Timeline extends StatefulWidget {
 
 class _TimelineState extends State<Timeline> {
   TextEditingController postController = TextEditingController();
-
+  VideoPlayerController _videoPlayerController;
   final String currentUserId = currentUser?.id;
   bool isLoading = false;
   int postCount = 0;
+  File file;
+  String mediaUrl = "";
+  String location = "";
   List<Post> posts = [];
   List<User> userData = [];
   List<Rules> rules = [];
   int userValue = 0;
+  bool isUploading = false;
   List<TeamOneWallet> teamOneWallet = [];
   var userLevels = ["All", "1 Star", "2 Star", "3 Star", "4 Star", "5 Star"];
   int selectedPostValue;
@@ -41,6 +56,12 @@ class _TimelineState extends State<Timeline> {
   int defaultIndex = 0;
   String selecteduserLevel = "All";
   List<PostValues> postValues = [];
+  bool _isChecked = false;
+  List<Categories> postCategories = [];
+  List<String> selectedCategories = [];
+  List<String> selectedFilters = [];
+  String fileType = "";
+  String postId = Uuid().v4();
 
   @override
   void initState() {
@@ -48,6 +69,17 @@ class _TimelineState extends State<Timeline> {
     getRules();
     getCurrentUser();
     getProfilePosts();
+    getPostCategories();
+  }
+
+  getPostCategories() {
+    categoriesRef.getDocuments().then((QuerySnapshot snapshot) {
+      snapshot.documents.forEach((DocumentSnapshot doc) {
+        postCategories.add(Categories.fromDocument(doc));
+        print(postCategories);
+        print("########################################");
+      });
+    });
   }
 
   getCurrentUser() {
@@ -157,30 +189,88 @@ class _TimelineState extends State<Timeline> {
                 style: TextStyle(fontSize: 20.0),
               ),
               Container(
-                  height: 280,
-                  child: SingleChildScrollView(
-                      child: Column(
-                    children: postValues
-                        .map((data) => RadioListTile(
-                              title: Text("${data.postValue}"),
-                              groupValue: defaultIndex,
-                              value: data.index,
-                              onChanged: (value) {
+                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+                height: MediaQuery.of(context).size.height * 0.12,
+                child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: postValues.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        // width: MediaQuery.of(context).size.width * 0.6,
+                        child: FlatButton(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0),
+                              side: BorderSide(color: Colors.grey)),
+                          color:
+                              postValues[index].postValue == selectedPostValue
+                                  ? Colors.lightGreen
+                                  : Colors.white,
+                          textColor:
+                              postValues[index].postValue == selectedPostValue
+                                  ? Colors.white
+                                  : Colors.grey,
+                          padding: EdgeInsets.all(8.0),
+                          onPressed: () => {
                                 setModalState(() {
-                                  selectedPostValue = data.postValue;
+                                  selectedPostValue =
+                                      postValues[index].postValue;
+                                  postValues[index].postValue =
+                                      selectedPostValue;
                                   selectedPostDeductionValue =
-                                      data.postDeductionValue;
-                                  defaultIndex = data.index;
-                                  print(selectedPostValue);
-                                });
+                                      postValues[index].postDeductionValue;
+                                })
                               },
-                              selected: defaultIndex == data.index,
-                            ))
-                        .toList(),
-                  ))),
+                          child: Text(
+                            postValues[index]
+                                .postValue
+                                .toString()
+                                .toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 9.0,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+              Text(
+                "Choose Category:",
+                style: TextStyle(fontSize: 20.0),
+              ),
+              Wrap(
+                children: postCategories[0]
+                    .categories
+                    .map((item) => FlatButton(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                            side: BorderSide(color: Colors.grey)),
+                        color: selectedCategories.indexOf(item) != -1
+                            ? Colors.lightGreen
+                            : Colors.white,
+                        textColor: selectedCategories.indexOf(item) != -1
+                            ? Colors.white
+                            : Colors.grey,
+                        onPressed: () => {
+                              setModalState(() {
+                                if (selectedCategories.indexOf(item) != -1) {
+                                  selectedCategories.remove(item);
+                                } else {
+                                  selectedCategories.add(item);
+                                }
+                              })
+                            },
+                        child: Text(item,style: TextStyle(
+                              fontSize: 9.0,
+                            ))))
+                    .toList()
+                    .cast<Widget>(),
+              ),
               RaisedButton(
                   color: Colors.blue,
                   onPressed: createPost,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0),
+                      side: BorderSide(color: Colors.grey)),
                   child: Text(
                     'Post',
                     textAlign: TextAlign.center,
@@ -196,30 +286,31 @@ class _TimelineState extends State<Timeline> {
     Navigator.pop(context);
     String postId = Uuid().v4();
     if (widget.currentUser.referralPoints >= selectedPostValue) {
-      if (postController.text != "" && postController.text != null) {
-        userPostRef.document(postId).setData({
-          "postId": postId,
-          "ownerId": widget.currentUser.id,
-          "username": widget.currentUser.username,
-          "mediaUrl": "",
-          "description": postController.text,
-          "location": "",
-          "timestamp": timestamp,
-          "postStatus": "pending",
-          "postType": "",
-          "likes": {},
-          "postValue": selectedPostValue,
-          "postDeductionValue": selectedPostDeductionValue,
-          "noComments": {},
-          "disLikes": {},
-          "comments": {}
-        });
-        postController.clear();
-        debitWalletAmount(selectedPostValue);
-        addDebitedAmountToPostPoolingAmount(selectedPostValue, postId);
-        _showMyDialog("Success", "Your post is yet to verify.",
-            "Once verified, it is visible to all.");
-      }
+      // if (postController.text != "" && postController.text != null) {
+      userPostRef.document(postId).setData({
+        "postId": postId,
+        "ownerId": widget.currentUser.id,
+        "username": widget.currentUser.username,
+        "mediaUrl": mediaUrl,
+        "description": postController.text,
+        "location": location,
+        "timestamp": timestamp,
+        "postStatus": "pending",
+        "postType": fileType,
+        "likes": {},
+        "postValue": selectedPostValue,
+        "postDeductionValue": selectedPostDeductionValue,
+        "noComments": {},
+        "disLikes": {},
+        "comments": {},
+        "postCategory":this.selectedCategories
+      });
+      postController.clear();
+      debitWalletAmount(selectedPostValue);
+      addDebitedAmountToPostPoolingAmount(selectedPostValue, postId);
+      _showMyDialog("Success", "Your post is yet to verify.",
+          "Once verified, it is visible to all.");
+      // }
     } else {
       _showMyDialog(
           "Warning",
@@ -234,34 +325,92 @@ class _TimelineState extends State<Timeline> {
         .setData({"postAmount": userPostdeductionValue, "postId": postId});
   }
 
+  selectImage(parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text("Create Post"),
+          children: <Widget>[
+            SimpleDialogOption(
+                child: Text("Photo with Camera"), onPressed: handleTakePhoto),
+            SimpleDialogOption(
+                child: Text("Image from Gallery"),
+                onPressed: handleChooseFromGallery),
+            SimpleDialogOption(
+              child: Text("Cancel"),
+              onPressed: () => Navigator.pop(context),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  handleTakePhoto() async {
+    fileType = "image";
+    Navigator.pop(context);
+    File file = await ImagePicker.pickImage(
+      source: ImageSource.camera,
+      maxHeight: 675,
+      maxWidth: 960,
+    );
+    setState(() {
+      this.file = file;
+    });
+  }
+
+  handleChooseFromGallery() async {
+    fileType = "image";
+    Navigator.pop(context);
+    File file = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      this.file = file;
+    });
+  }
+
   createPostInFirestore() {
-    postValues = [
-      PostValues(
+    postValues = [];
+    selectedCategories = [];
+    // if (postController.text.trim() != "") {
+    if (currentUser.referralPoints >= rules[0].nomralUser) {
+      postValues.add(PostValues(
           index: 0,
           postValue: rules[0].nomralUser,
-          postDeductionValue: rules[0].nomralUserPostDeduction),
-      PostValues(
+          postDeductionValue: rules[0].nomralUserPostDeduction));
+    }
+    if (currentUser.referralPoints >= rules[0].oneStarUser) {
+      postValues.add(PostValues(
           index: 1,
           postValue: rules[0].oneStarUser,
-          postDeductionValue: rules[0].oneStarUserPostDeduction),
-      PostValues(
+          postDeductionValue: rules[0].oneStarUserPostDeduction));
+    }
+    if (currentUser.referralPoints >= rules[0].twoStarUser) {
+      postValues.add(PostValues(
           index: 2,
           postValue: rules[0].twoStarUser,
-          postDeductionValue: rules[0].twoStarUserPostDeduction),
-      PostValues(
+          postDeductionValue: rules[0].twoStarUserPostDeduction));
+    }
+    if (currentUser.referralPoints >= rules[0].threeStarUser) {
+      postValues.add(PostValues(
           index: 3,
           postValue: rules[0].threeStarUser,
-          postDeductionValue: rules[0].threeStarUserPostDeduction),
-      PostValues(
+          postDeductionValue: rules[0].threeStarUserPostDeduction));
+    }
+    if (currentUser.referralPoints >= rules[0].fourStarUser) {
+      postValues.add(PostValues(
           index: 4,
           postValue: rules[0].fourStarUser,
-          postDeductionValue: rules[0].fourStarUserPostDeduction),
-      PostValues(
+          postDeductionValue: rules[0].fourStarUserPostDeduction));
+    }
+    if (currentUser.referralPoints >= rules[0].fiveStarUser) {
+      postValues.add(PostValues(
           index: 5,
           postValue: rules[0].fiveStarUser,
-          postDeductionValue: rules[0].fiveStarUserPostDeduction)
-    ];
+          postDeductionValue: rules[0].fiveStarUserPostDeduction));
+    }
     _showBottomSheet(context);
+    // }
   }
 
   addDebitedAmountToTeamOne(userPostdeductionValue) {
@@ -331,89 +480,400 @@ class _TimelineState extends State<Timeline> {
     );
   }
 
+  buildDevider() {
+    return Container(
+      // height: 1.0,
+      // decoration: new BoxDecoration(
+      //   color: Colors.grey,
+      // ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    return file == null
+        ? Scaffold(
+            appBar: AppBar(
+              title: new Text('TEAM ONE'),
+              actions: [
+                // action button
+                IconButton(
+                  icon: Icon(Icons.notifications_active),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ActivityFeed()),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Search()),
+                    );
+                  },
+                ),
+              ],
+              leading: getuserProfile(),
+            ),
+            body: Column(
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Container(
+                      height: 40.0,
+                      margin: EdgeInsets.only(top: 10.0),
+                      child: TextFormField(
+                        controller: postController,
+                        
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              // width: 0.0 produces a thin "hairline" border
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(20.0)),
+                              borderSide: BorderSide(color: Colors.grey),
+                              //borderSide: const BorderSide(),
+                            ),contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+
+                            hintStyle: TextStyle(
+                                color: Colors.grey,
+                                fontFamily: "WorkSansLight"),
+                            filled: true,
+                            
+                            fillColor: Colors.white24,
+                            hintText: 'Write something here...'),
+                      ),
+                      width: MediaQuery.of(context).size.width * 0.8,
+                    ),
+                    GestureDetector(
+                      onTap: () => createPostInFirestore(),
+                      child: Icon(
+                        Icons.send,
+                        size: 28.0,
+                        color: Colors.blue[900],
+                      ),
+                    ),
+                  ],
+                ),
+                Divider(),
+                Container(
+                  height: 30.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    FlatButton(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18.0),
+                          side: BorderSide(color: Colors.grey)),
+                      color: Colors.white,
+                      textColor: Colors.grey,
+                      padding: EdgeInsets.all(8.0),
+                      onPressed: () => selectImage(context),
+                      child: Text(
+                        "Photo".toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 9.0,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10,height: 5,),
+                    FlatButton(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18.0),
+                          side: BorderSide(color: Colors.grey)),
+                      color: Colors.white,
+                      textColor: Colors.grey,
+                      // padding: EdgeInsets.all(8.0),
+                      onPressed: () => selectVideo(context),
+                      child: Text(
+                        "Video".toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 9.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+            ),
+                buildDevider(),
+                Expanded(
+                  child: ListView(
+                    children: <Widget>[
+                      buildProfilePosts(),
+                      Divider(
+                        height: 2.0,
+                      ),
+                    ],
+                  ),
+                ),
+                // Divider(),
+              ],
+            ),
+            floatingActionButton: new FlatButton(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                  side: BorderSide(color: Colors.grey)),
+              color: Colors.red,
+              textColor: Colors.white,
+              padding: EdgeInsets.all(8.0),
+              onPressed: () => openFilterBottomSheet(context),
+              child: Text(
+                "Filter".toUpperCase(),
+                style: TextStyle(
+                  fontSize: 9.0,
+                ),
+              ),
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+          )
+        : buildUploadForm();
+  }
+
+  clearImage() {
+    setState(() {
+      file = null;
+    });
+  }
+
+  compressImage() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Im.Image imageFile = Im.decodeImage(file.readAsBytesSync());
+    final compressedImageFile = File('$path/img_$postId.jpg')
+      ..writeAsBytesSync(Im.encodeJpg(imageFile, quality: 85));
+    setState(() {
+      file = compressedImageFile;
+    });
+  }
+
+  Future<String> uploadImage(imageFile) async {
+    StorageUploadTask uploadTask =
+        storageRef.child("post_$postId.jpg").putFile(imageFile);
+    StorageTaskSnapshot storageSnap = await uploadTask.onComplete;
+    String downloadUrl = await storageSnap.ref.getDownloadURL();
+    return downloadUrl;
+  }
+
+  Future<String> uploadVideo(videoFile) async {
+    StorageReference ref =
+        FirebaseStorage.instance.ref().child("post_$postId.video");
+    StorageUploadTask uploadTask =
+        ref.putFile(videoFile, StorageMetadata(contentType: 'video/mp4'));
+    StorageTaskSnapshot storageSnap = await uploadTask.onComplete;
+    String downloadUrl = await storageSnap.ref.getDownloadURL();
+    return downloadUrl;
+  }
+
+  callStoringMethod(mediaUrl) {
+    createPostInFirestore();
+    postController.clear();
+    setState(() {
+      file = null;
+      isUploading = false;
+      postId = Uuid().v4();
+    });
+  }
+
+  openFilterBottomSheet(context) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (BuildContext context,
+              StateSetter setModalState /*You can rename this!*/) {
+            return Column(children: <Widget>[
+              Text(
+                "Choose Category:",
+                style: TextStyle(fontSize: 20.0),
+              ),
+              Wrap(
+                children: postCategories[0]
+                    .categories
+                    .map((item) => FlatButton(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                            side: BorderSide(color: Colors.grey)),
+                        color: selectedFilters.indexOf(item) != -1
+                            ? Colors.lightGreen
+                            : Colors.white,
+                        textColor: selectedFilters.indexOf(item) != -1
+                            ? Colors.white
+                            : Colors.grey,
+                        onPressed: () => {
+                              setModalState(() {
+                                if (selectedFilters.indexOf(item) != -1) {
+                                  selectedFilters.remove(item);
+                                } else {
+                                  selectedFilters.add(item);
+                                }
+                              })
+                            },
+                        child: Text(item)))
+                    .toList()
+                    .cast<Widget>(),
+              ),
+              Align(
+      alignment: Alignment.bottomCenter,
+      child: RaisedButton(
+                  color: Colors.blue,
+                  onPressed: createPost,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0),
+                      side: BorderSide(color: Colors.grey)),
+                  child: Text(
+                    'Apply',
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.bold,color:Colors.white),
+                  ))
+    )
+              ,
+            ]);
+          });
+        });
+  }
+
+  buildVideoOrImageSpace() {
+    if (fileType == 'video') {
+      return VideoPlayer(_videoPlayerController);
+    } else {
+      return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: FileImage(file),
+          ),
+        ),
+      );
+    }
+  }
+
+  selectVideo(parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text("Create Post"),
+          children: <Widget>[
+            SimpleDialogOption(
+                child: Text("Video with camera"), onPressed: handelTakeVideo),
+            SimpleDialogOption(
+                child: Text("Video from Gallery"),
+                onPressed: handleChooseVideoFromGallery),
+            SimpleDialogOption(
+              child: Text("Cancel"),
+              onPressed: () => Navigator.pop(context),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  handelTakeVideo() async {
+    fileType = "video";
+    Navigator.pop(context);
+    File file = await ImagePicker.pickVideo(source: ImageSource.camera);
+
+    _videoPlayerController = VideoPlayerController.file(file)
+      ..initialize().then((_) {
+        setState(() {
+          this.file = file;
+        });
+        _videoPlayerController.play();
+      });
+  }
+
+  handleChooseVideoFromGallery() async {
+    fileType = "video";
+    Navigator.pop(context);
+    File file = await ImagePicker.pickVideo(source: ImageSource.gallery);
+    _videoPlayerController = VideoPlayerController.file(file)
+      ..initialize().then((_) {
+        setState(() {
+          this.file = file;
+        });
+        _videoPlayerController.play();
+      });
+  }
+
+  handleSubmit() async {
+    postId = Uuid().v4();
+    setState(() {
+      isUploading = true;
+    });
+    if (fileType == "image") {
+      await compressImage();
+    }
+    if (fileType == 'image') {
+      mediaUrl = await uploadImage(file);
+      callStoringMethod(mediaUrl);
+    } else {
+      mediaUrl = await uploadVideo(file);
+      callStoringMethod(mediaUrl);
+    }
+  }
+
+  bool get wantKeepAlive => true;
+  Scaffold buildUploadForm() {
     return Scaffold(
       appBar: AppBar(
-        title: new Text('TEAM ONE'),
+        backgroundColor: Colors.white70,
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: clearImage),
+        title: Text(
+          "Caption Post",
+          style: TextStyle(color: Colors.black),
+        ),
         actions: [
-          // action button
-          IconButton(
-            icon: Icon(Icons.notifications_active),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ActivityFeed()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Search()),
-              );
-            },
-          ),
-        ],
-        leading: getuserProfile(),
-      ),
-      body: Column(
-        children: <Widget>[
-          ListTile(
-            title: TextFormField(
-              controller: postController,
-              decoration: InputDecoration(labelText: "Write a post..."),
-            ),
-            trailing: OutlineButton(
-              onPressed: createPostInFirestore,
-              borderSide: BorderSide.none,
-              child: IconButton(
-                icon: Icon(Icons.send),
-                color: Colors.blue,
+          FlatButton(
+            onPressed: isUploading ? null : () => handleSubmit(),
+            child: Text(
+              "Post",
+              style: TextStyle(
+                color: Colors.blueAccent,
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
               ),
             ),
           ),
-          // ListTile(
-          //   title:Text(
-          //                 "Post category:",
-          //                 style: TextStyle(fontSize: 20.0, ),
-          //               ),
-          //   trailing:
-          //   DropdownButton<String>(
-          //             items: userLevels.map((String dropdownItem) {
-          //               return DropdownMenuItem<String>(
-          //                   value: dropdownItem, child: Text(dropdownItem));
-          //             }).toList(),
-          //             onChanged: (String selectedValue) {
-          //               setState(() {
-          //                 this.selecteduserLevel = selectedValue;
-          //               });
-          //             },
-          //             value: this.selecteduserLevel,
-          //           ),
-          //   // OutlineButton(
-          //   //   onPressed: createPostInFirestore,
-          //   //   borderSide: BorderSide.none,
-          //   //   child: IconButton(
-          //   //     icon: Icon(Icons.send),
-          //   //     color: Colors.blue,
-          //   //   ),
-          //   // ),
-          // ),
-          // Divider(),
-          Expanded(
-            child: ListView(
-              children: <Widget>[
-                buildProfilePosts(),
-                Divider(
-                  height: 2.0,
-                ),
-              ],
+        ],
+      ),
+      body: ListView(
+        children: <Widget>[
+          isUploading ? linearProgress() : Text(""),
+          Container(
+            height: 220.0,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Center(
+              child: AspectRatio(
+                  aspectRatio: 16 / 9, child: buildVideoOrImageSpace()),
             ),
           ),
-          // Divider(),
+          Padding(
+            padding: EdgeInsets.only(top: 10.0),
+          ),
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage:
+                  CachedNetworkImageProvider(widget.currentUser.photoUrl),
+            ),
+            title: Container(
+              width: 250.0,
+              child: TextField(
+                controller: postController,
+                decoration: InputDecoration(
+                  hintText: "Write a caption...",
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+          Divider(),
         ],
       ),
     );

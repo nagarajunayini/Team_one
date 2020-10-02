@@ -113,7 +113,7 @@ class _SideBarState extends State<SideBar>
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  color: Color(0xFF262AAA),
+                  color:  Theme.of(context).accentColor,
                   child: Column(
                     children: <Widget>[
                       SizedBox(
@@ -227,7 +227,7 @@ class _SideBarState extends State<SideBar>
                     child: Container(
                       width: 35,
                       height: 110,
-                      color: Color(0xFF262AAA),
+                     color:  Theme.of(context).accentColor,
                       alignment: Alignment.centerLeft,
                       child: AnimatedIcon(
                         progress: _animationController.view,

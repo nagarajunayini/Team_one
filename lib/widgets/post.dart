@@ -37,6 +37,7 @@ class Post extends StatefulWidget {
   final String postType;
   final int postValue;
   final int postDeductionValue;
+  List<dynamic> postCategory = [];
 
   Post(
       {this.postId,
@@ -52,7 +53,8 @@ class Post extends StatefulWidget {
       this.comments,
       this.postType,
       this.postValue,
-      this.postDeductionValue});
+      this.postDeductionValue,
+      this.postCategory});
 
   factory Post.fromDocument(DocumentSnapshot doc) {
     return Post(
@@ -69,7 +71,8 @@ class Post extends StatefulWidget {
         comments: doc['comments'],
         postType: doc['postType'],
         postValue: doc['postValue'],
-        postDeductionValue: doc['postDeductionValue']);
+        postDeductionValue: doc['postDeductionValue'],
+        postCategory:doc['postCategory']);
   }
 
   int getLikeCount(likes) {
@@ -143,6 +146,7 @@ class Post extends StatefulWidget {
       postType: this.postType,
       postValue: this.postValue,
       postDeductionValue: this.postDeductionValue,
+      postCategory:this.postCategory,
       commentCount: getCommentCount(this.comments));
 }
 
@@ -169,6 +173,7 @@ class _PostState extends State<Post> {
   Map comments;
   int postValue;
   int postDeductionValue;
+  List<dynamic> postCategory=[];
   final String postType;
   List<Rules> rules = [];
   List<TeamOneWallet> teamOneWallet = [];
@@ -196,6 +201,7 @@ class _PostState extends State<Post> {
       this.noCommentsCount,
       this.postValue,
       this.postDeductionValue,
+      this.postCategory,
       this.postType});
   @override
   void initState() {

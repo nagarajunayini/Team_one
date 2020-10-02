@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PostValues {
-  final int index;
-  final int postValue;
-  final int postDeductionValue;
+   int index;
+   int postValue;
+   int postDeductionValue;
 
   PostValues({
     this.index,
