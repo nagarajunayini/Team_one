@@ -17,7 +17,7 @@ class PostScreen extends StatelessWidget {
       future: userPostRef.document(postId).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return circularProgress();
+          return linearProgress();
         }
         Post post = Post.fromDocument(snapshot.data);
         print(post.postId);

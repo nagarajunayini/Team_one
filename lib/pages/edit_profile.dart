@@ -56,8 +56,7 @@ class _EditProfileState extends State<EditProfile> {
       user.extraInfo.forEach((a) => {
             if (this.city.indexOf(a) > -1)
               {this.selectedCity = a}
-            else
-              if (this.gender.indexOf(a) > -1)
+            else if(this.gender.indexOf(a) > -1)
                 {this.selectedGender = a}
               else
                 {this.selectedReligion = a}

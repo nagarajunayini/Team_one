@@ -14,10 +14,12 @@ import 'package:fluttershare/pages/upload.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'contest_timeLine.dart';
+import 'menu.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 final StorageReference storageRef = FirebaseStorage.instance.ref();
 final usersRef = Firestore.instance.collection('users');
+final groupsRef = Firestore.instance.collection('groups');
 final postsRef = Firestore.instance.collection('posts');
 final userPostRef = Firestore.instance.collection('userPosts');
 final userContestRef = Firestore.instance.collection('Contests');
@@ -59,12 +61,18 @@ class _HomeState extends State<Home> {
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn(account);
     }, onError: (err) {
+      setState(() {
+        isAuth = "false";
+      });
       print('Error signing in: $err');
     });
     // Reauthenticate user when app is opened
     googleSignIn.signInSilently(suppressErrors: false).then((account) {
       handleSignIn(account);
     }).catchError((err) {
+    setState(() {
+        isAuth = "false";
+      });
       print('Error signing in: $err');
     });
   }
@@ -201,18 +209,41 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           Timeline(currentUser: currentUser),
           ContestTimeline(currentUser: currentUser),
-          // Upload(currentUser: currentUser),
+          Upload(currentUser: currentUser),
           // Search(),
-          Profile(profileId: currentUser?.id),
+          Menu(currentUser: currentUser),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
         physics: NeverScrollableScrollPhysics(),
       ),
+      floatingActionButton: FloatingActionButton(
+                 elevation:20.0,
+
+    backgroundColor: Colors.blueGrey,
+    child: const Icon(
+      Icons.add,
+    
+      color: Colors.white,
+    ),
+    
+    onPressed: () {
+      Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Upload(currentUser: currentUser),
+                    ),
+                  );
+    },
+  ),
+  floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+  
       bottomNavigationBar: CupertinoTabBar(
+      
           currentIndex: pageIndex,
           onTap: onTap,
           activeColor: Theme.of(context).primaryColor,
+      
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home)),
             BottomNavigationBarItem(icon: Icon(Icons.stars)),
@@ -222,8 +253,8 @@ class _HomeState extends State<Home> {
             //     size: 35.0,
             //   ),
             // ),
-            // BottomNavigationBarItem(icon: Icon(Icons.search)),
-            BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
+            BottomNavigationBarItem(icon: Icon(Icons.search,color: Colors.transparent,)),
+            BottomNavigationBarItem(icon: Icon(Icons.menu)),
           ]),
     );
     // return RaisedButton(
@@ -231,22 +262,23 @@ class _HomeState extends State<Home> {
     //   onPressed: logout,
     // );
   }
-  Scaffold buildSpalshScreen(){
+
+  Scaffold buildSpalshScreen() {
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: <Widget>[
           Container(
             decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              Theme.of(context).accentColor,
-              Theme.of(context).primaryColor,
-            ],
-          ),
-        ),
+              gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [
+                  Theme.of(context).accentColor,
+                  Theme.of(context).primaryColor,
+                ],
+              ),
+            ),
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -260,9 +292,9 @@ class _HomeState extends State<Home> {
                       CircleAvatar(
                         backgroundColor: Colors.white,
                         radius: 50.0,
-  backgroundImage: AssetImage('assets/images/appicon.png'),
-),
-
+                        backgroundImage:
+                            AssetImage('assets/images/appicon.png'),
+                      ),
                       Padding(
                         padding: EdgeInsets.only(top: 10.0),
                       ),
@@ -282,7 +314,10 @@ class _HomeState extends State<Home> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    CircularProgressIndicator(),
+                    CircularProgressIndicator(
+                      valueColor:
+                          new AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                     Padding(
                       padding: EdgeInsets.only(top: 20.0),
                     ),
@@ -369,6 +404,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return isAuth=="" ? buildSpalshScreen():isAuth=="true"? buildAuthScreen() : buildUnAuthScreen();
+    return isAuth == ""
+        ? buildSpalshScreen()
+        : isAuth == "true" ? buildAuthScreen() : buildUnAuthScreen();
   }
 }

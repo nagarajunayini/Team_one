@@ -7,6 +7,7 @@ import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/edit_profile.dart';
 import 'package:fluttershare/pages/home.dart';
 import 'package:fluttershare/pages/sidebar.dart';
+import 'package:fluttershare/widgets/header.dart';
 // import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/widgets/post.dart';
 import 'package:fluttershare/widgets/post_tile.dart';
@@ -96,14 +97,14 @@ class _ProfileState extends State<Profile> {
       children: <Widget>[
         Text(
           count.toString(),
-          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 22.0,  color: Colors.white,fontWeight: FontWeight.bold),
         ),
         Container(
           margin: EdgeInsets.only(top: 4.0),
           child: Text(
             label,
             style: TextStyle(
-              color: Colors.grey,
+              color: Colors.white,
               fontSize: 15.0,
               fontWeight: FontWeight.w400,
             ),
@@ -114,6 +115,12 @@ class _ProfileState extends State<Profile> {
   }
 
   editProfile() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => EditProfile(currentUserId: currentUserId)));
+  }
+  yourGroups(){
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -240,30 +247,60 @@ class _ProfileState extends State<Profile> {
   }
 
   buildProfileHeader() {
+
     return FutureBuilder(
         future: usersRef.document(widget.profileId).get(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Container();
+            return Container(
+              height: 270.0,
+              decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.redAccent, Colors.pinkAccent]
+              )
+            ),
+            );
           }
-          User user = User.fromDocument(snapshot.data);
-          return Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: <Widget>[
-                Row(
+   return Column(
+        children: <Widget>[
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.redAccent, Colors.pinkAccent]
+              )
+            ),
+            child: Container(
+              width: double.infinity,
+              height: 270.0,
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     CircleAvatar(
-                      radius: 40.0,
-                      backgroundColor: Colors.grey,
-                      backgroundImage:
-                          CachedNetworkImageProvider(user.photoUrl),
+                      backgroundImage: NetworkImage(
+                        currentUser.photoUrl,
+                      ),
+                      radius: 50.0,
                     ),
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: <Widget>[
-                          Row(
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                    Text(
+                     currentUser.username,
+                      style: TextStyle(
+                        fontSize: 22.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                    Row(
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
@@ -272,34 +309,77 @@ class _ProfileState extends State<Profile> {
                               buildCountColumn("following", followingCount),
                             ],
                           ),
-                          Row(
+
+                           SizedBox(
+                      height: 10.0,
+                    ),
+                     Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               Expanded(
                                 child: buildProfileButton(),
                               ),
+                               Expanded(
+                                child:buildButton(
+        text: "Your groups",
+        function: yourGroups,
+      ),
+                              ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
+                   
                   ],
                 ),
-                // Container(
-                //   alignment: Alignment.centerLeft,
-                //   padding: EdgeInsets.only(top: 10.0),
-                //   child: Text(
-                //     user.username,
-                //     style: TextStyle(
-                //       fontWeight: FontWeight.bold,
-                //       fontSize: 16.0,
-                //     ),
-                //   ),
-                // ),
-              ],
-            ),
-          );
-        });
+              ),
+            )
+          ),
+          
+        
+         
+          
+        ],
+      );});
+   
+    // return FutureBuilder(
+    //     future: usersRef.document(widget.profileId).get(),
+    //     builder: (context, snapshot) {
+    //       if (!snapshot.hasData) {
+    //         return Container(
+    //           height: 200.0,
+    //           decoration: BoxDecoration(
+    //             color: Colors.black,
+    //           ),
+    //         );
+    //       }
+    //       User user = User.fromDocument(snapshot.data);
+    //       return Container(
+    //         height: 200.0,
+    //         decoration: BoxDecoration(
+    //           gradient: LinearGradient(colors: [
+    //             Colors.pink[100],
+    //             Colors.pink[200],
+    //             Colors.pink[300],
+    //             Colors.pink[400],
+    //             Colors.pink[500],
+    //             Colors.pink[600],
+    //             Colors.pink[700],
+    //             Colors.pink[800],
+    //             Colors.pink[900],
+    //           ]),
+    //         ),
+    //         child: Container(
+    //                             height: 50.0,
+    //                             width: 50.0,
+    //                             decoration: BoxDecoration(
+    //                                 borderRadius: BorderRadius.circular(100),
+    //                                 color: Colors.white,
+    //                                 image: DecorationImage(
+    //                                     image: new NetworkImage(
+    //                                         currentUser.photoUrl),
+    //                                     fit: BoxFit.fill)),
+    //                           )
+    //       );
+    //     });
   }
 
   logout() async {
@@ -345,7 +425,7 @@ class _ProfileState extends State<Profile> {
 
   buildProfilePosts() {
     if (isLoading) {
-      return circularProgress();
+      return linearProgress();
     } else if (posts.isEmpty) {
       return Container(
         child: Column(
@@ -369,9 +449,9 @@ class _ProfileState extends State<Profile> {
     } else if (postOrientation == "grid") {
       List<GridTile> gridTiles = [];
       posts.forEach((post) {
-        if (post.mediaUrl != null && post.mediaUrl != "") {
+        // if (post.mediaUrl != null && post.mediaUrl != "") {
           gridTiles.add(GridTile(child: PostTile(post)));
-        }
+        // }
       });
       return GridView.count(
         crossAxisCount: 3,
@@ -448,25 +528,22 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-//       appBar: AppBar(
-
-// ),
-        // appBar: header(context, titleText: "Profile"),
+        appBar: header(context, titleText: "Profile"),
         body: Stack(
-      children: <Widget>[
-        ListView(
           children: <Widget>[
-            buildProfileHeader(),
-            Divider(),
-            buildTogglePostOrientation(),
-            Divider(
-              height: 0.0,
+            ListView(
+              children: <Widget>[
+                buildProfileHeader(),
+                Divider(),
+                buildTogglePostOrientation(),
+                Divider(
+                  height: 0.0,
+                ),
+                buildProfilePosts(),
+              ],
             ),
-            buildProfilePosts(),
+            // SideBar(currentUserId: currentUserId)
           ],
-        ),
-        SideBar(currentUserId: currentUserId)
-      ],
-    ));
+        ));
   }
 }

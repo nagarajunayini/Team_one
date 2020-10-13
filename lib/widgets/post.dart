@@ -17,10 +17,14 @@ import 'package:fluttershare/pages/postExpiryTimer.dart';
 import 'package:fluttershare/pages/postreaction_chart.dart';
 import 'package:fluttershare/pages/showLikes.dart';
 import 'package:fluttershare/widgets/custom_image.dart';
+import 'package:fluttershare/widgets/header.dart';
+import 'package:fluttershare/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:video_player/video_player.dart';
+import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class Post extends StatefulWidget {
   final String postId;
@@ -37,6 +41,7 @@ class Post extends StatefulWidget {
   final String postType;
   final int postValue;
   final int postDeductionValue;
+  final String fromPage;
   List<dynamic> postCategory = [];
 
   Post(
@@ -54,7 +59,8 @@ class Post extends StatefulWidget {
       this.postType,
       this.postValue,
       this.postDeductionValue,
-      this.postCategory});
+      this.postCategory,
+      this.fromPage});
 
   factory Post.fromDocument(DocumentSnapshot doc) {
     return Post(
@@ -72,7 +78,7 @@ class Post extends StatefulWidget {
         postType: doc['postType'],
         postValue: doc['postValue'],
         postDeductionValue: doc['postDeductionValue'],
-        postCategory:doc['postCategory']);
+        postCategory: doc['postCategory']);
   }
 
   int getLikeCount(likes) {
@@ -146,7 +152,8 @@ class Post extends StatefulWidget {
       postType: this.postType,
       postValue: this.postValue,
       postDeductionValue: this.postDeductionValue,
-      postCategory:this.postCategory,
+      postCategory: this.postCategory,
+      fromPage: this.fromPage,
       commentCount: getCommentCount(this.comments));
 }
 
@@ -173,7 +180,8 @@ class _PostState extends State<Post> {
   Map comments;
   int postValue;
   int postDeductionValue;
-  List<dynamic> postCategory=[];
+  final String fromPage;
+  List<dynamic> postCategory = [];
   final String postType;
   List<Rules> rules = [];
   List<TeamOneWallet> teamOneWallet = [];
@@ -183,6 +191,10 @@ class _PostState extends State<Post> {
   List<User> userData = [];
   VideoPlayerController _videoPlayerController;
   Future<void> futureController;
+  Duration _duration = new Duration();
+  Duration _position = new Duration();
+  AudioPlayer advancedPlayer;
+  AudioCache audioCache;
   _PostState(
       {this.postId,
       this.ownerId,
@@ -202,11 +214,35 @@ class _PostState extends State<Post> {
       this.postValue,
       this.postDeductionValue,
       this.postCategory,
-      this.postType});
+      this.postType,
+      this.fromPage});
   @override
   void initState() {
     super.initState();
     getRules();
+    if (fromPage == "postTile") {
+      initPlayer();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    advancedPlayer.stop();
+  }
+
+  void initPlayer() {
+    advancedPlayer = new AudioPlayer();
+    audioCache = new AudioCache(fixedPlayer: advancedPlayer);
+
+    advancedPlayer.durationHandler = (d) => setState(() {
+          _duration = d;
+        });
+
+    advancedPlayer.positionHandler = (p) => setState(() {
+          _position = p;
+        });
+    audioCache.play('background.mp3');
   }
 
   static List<charts.Series<PostReactions, String>> _createRandomData(
@@ -255,7 +291,6 @@ class _PostState extends State<Post> {
     setState(() {
       rules.addAll(
           snapshot.documents.map((doc) => Rules.fromDocument(doc)).toList());
-      print(rules[0].applyType);
     });
   }
 
@@ -391,7 +426,6 @@ class _PostState extends State<Post> {
     bool _isNoComment = noComments[currentUserId] == true;
 
     // if (currentUser.referralPoints >= postDeductionValue) {
-    print("no dialog ****************************");
 
     if (!_isNoComment) {
       userPostRef
@@ -455,7 +489,6 @@ class _PostState extends State<Post> {
         });
       }
     } else {
-      print("ShowDIalog ****************************");
       _showMyDialog(
           "Warning", "You do not have enough points to react this post.", "");
     }
@@ -518,8 +551,6 @@ class _PostState extends State<Post> {
     //   });
     //   removeDislike();
     // } else
-    print(userWallet);
-    print(postDeductionValue);
     if (userWallet >= postDeductionValue) {
       if (!_isDisLiked) {
         userPostRef
@@ -588,8 +619,6 @@ class _PostState extends State<Post> {
   }
 
   debitWalletAmount(postDeductionValue, userWallet) {
-    print(postDeductionValue);
-    print("debitWalletAmount");
     usersRef.document(currentUserId).setData({
       "id": currentUser.id,
       "username": currentUser.username,
@@ -643,10 +672,6 @@ class _PostState extends State<Post> {
   }
 
   walletTransactions(action, postId, postDeductionValue) {
-    print(action);
-    print(postId);
-    print(postDeductionValue);
-    print("walletTransactions");
     walletTransactionRef.document(postId).setData({
       "userId": ownerId,
       "transactionType": "Debit",
@@ -835,58 +860,26 @@ class _PostState extends State<Post> {
   }
 
   buildPostVideo() {
-    print(mediaUrl);
-    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
     _videoPlayerController = VideoPlayerController.network(
       mediaUrl,
     );
-
     futureController = _videoPlayerController.initialize();
     _videoPlayerController.play();
-
-    // print(mediaUrl);
-    // _videoPlayerController = VideoPlayerController.network(mediaUrl);
-    //   futureController = _videoPlayerController.initialize();
-    //   _videoPlayerController.setLooping(true);
-    //   _videoPlayerController.setVolume(25.0);
-    //   _videoPlayerController.play();
+    _videoPlayerController.setLooping(true);
+    _videoPlayerController.setVolume(25.0);
     return FutureBuilder(
       future: futureController,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          // If the VideoPlayerController has finished initialization, use
-          // the data it provides to limit the aspect ratio of the video.
           return AspectRatio(
             aspectRatio: _videoPlayerController.value.aspectRatio,
-            // Use the VideoPlayer widget to display the video.
             child: VideoPlayer(_videoPlayerController),
           );
         } else {
-          // If the VideoPlayerController is still initializing, show a
-          // loading spinner.
-          return Center(child: CircularProgressIndicator());
+          return Center(child: linearProgress());
         }
       },
     );
-    // floatingActionButton: FloatingActionButton(
-    //   onPressed: () {
-    //     // Wrap the play or pause in a call to `setState`. This ensures the
-    //     // correct icon is shown.
-    //     setState(() {
-    //       // If the video is playing, pause it.
-    //       if (_controller.value.isPlaying) {
-    //         _controller.pause();
-    //       } else {
-    //         // If the video is paused, play it.
-    //         _controller.play();
-    //       }
-    //     });
-    //   },
-    //   // Display the correct icon depending on the state of the player.
-    //   child: Icon(
-    //     _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-    //   ),
-    // ),
   }
 
   getvideo(mediaUrl) {
@@ -1027,20 +1020,67 @@ class _PostState extends State<Post> {
     isLiked = (likes[currentUserId] == true);
     isDisLiked = (disLikes[currentUserId] == true);
     isNoComment = (noComments[currentUserId] == true);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        buildPostHeader(),
-        description != "" ? buildDescription() : emptyWidget(),
-        postType == ""
-            ? emptyWidget()
-            : postType == "image" ? buildPostImage() : buildPostVideo(),
-        buildPostFooter(),
-        buildDevider()
-      ],
-    );
+    if (fromPage == "postTile") {
+      return Scaffold(
+          appBar: header(context, titleText: "Post Details"),
+          body: ListView(
+            children: <Widget>[
+              buildPostHeader(),
+              postType == ""
+                  ? buildDesciptionImage(description, context)
+                  : description != "" ? buildDescription() : emptyWidget(),
+              postType == ""
+                  ? emptyWidget()
+                  : postType == "image" ? buildPostImage() : buildPostVideo(),
+              buildPostFooter(),
+              // buildDevider()
+            ],
+          ));
+    } else {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          buildPostHeader(),
+          postType == ""
+              ? buildDesciptionImage(description, context)
+              : description != "" ? buildDescription() : emptyWidget(),
+          postType == ""
+              ? emptyWidget()
+              : postType == "image" ? buildPostImage() : buildPostVideo(),
+          buildPostFooter(),
+          buildDevider()
+        ],
+      );
+    }
   }
+}
+
+buildDesciptionImage(description, context) {
+  return Container(
+    width: MediaQuery.of(context).size.width,
+    height: MediaQuery.of(context).size.height - 280,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.redAccent, Colors.pinkAccent]),
+    ),
+    child: Center(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+              child: Text(
+            description,
+            maxLines: 3,
+            style: TextStyle(color: Colors.white, fontSize: 25.0),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ))
+        ],
+      ),
+    ),
+  );
 }
 
 showComments(BuildContext context,
