@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:animator/animator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -195,6 +196,8 @@ class _PostState extends State<Post> {
   Duration _position = new Duration();
   AudioPlayer advancedPlayer;
   AudioCache audioCache;
+   CountDownController _controller = CountDownController();
+
   _PostState(
       {this.postId,
       this.ownerId,
@@ -222,6 +225,13 @@ class _PostState extends State<Post> {
     getRules();
     if (fromPage == "postTile") {
       initPlayer();
+
+      Timer(
+          Duration(seconds: 20),
+          () => {
+                if (!isDisLiked && !isLiked && !isNoComment)
+                  {handleNoCommentPost()}
+              });
     }
   }
 
@@ -229,6 +239,12 @@ class _PostState extends State<Post> {
   void dispose() {
     super.dispose();
     advancedPlayer.stop();
+    if (fromPage == "postTile") {
+      print(isDisLiked);
+      print(isLiked);
+      print(isNoComment);
+      if (!isDisLiked && !isLiked && !isNoComment) handleNoCommentPost();
+    }
   }
 
   void initPlayer() {
@@ -823,6 +839,7 @@ class _PostState extends State<Post> {
             Expanded(child: Text(description))
           ],
         ),
+        
       ],
     );
   }
@@ -831,6 +848,46 @@ class _PostState extends State<Post> {
     return Column();
   }
 
+  
+buildDesciptionImage(description, context) {
+
+  return  Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+Container(
+    width: MediaQuery.of(context).size.width,
+    height: MediaQuery.of(context).size.height - 280,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.redAccent, Colors.pinkAccent]),
+    ),
+    child: Center(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+              child: Text(
+            description,
+            maxLines: 3,
+            style: TextStyle(color: Colors.white, fontSize: 25.0),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ))
+        ],
+      ),
+    ),
+  ),
+  !isDisLiked && !isLiked && !isNoComment? Positioned(
+                                  right:0.0,                                    
+                                   top:0.0,
+                                      child: countDownTimer(),
+                                    ):Text(""),
+        ]);
+   
+}
+
   buildPostImage() {
     return GestureDetector(
       // onDoubleTap: handleLikePost,
@@ -838,6 +895,11 @@ class _PostState extends State<Post> {
         alignment: Alignment.center,
         children: <Widget>[
           cachedNetworkImage(mediaUrl),
+             !isDisLiked && !isLiked && !isNoComment? Positioned(
+                                  right:0.0,                                    
+                                   top:0.0,
+                                      child: countDownTimer(),
+                                    ):Text(""),
           showHeart
               ? Animator(
                   duration: Duration(milliseconds: 300),
@@ -859,6 +921,52 @@ class _PostState extends State<Post> {
     );
   }
 
+
+countDownTimer(){
+  return CircularCountDownTimer(
+        // Countdown duration in Seconds
+        duration: 20,
+
+        // Controller to control (i.e Pause, Resume, Restart) the Countdown
+        controller: _controller,
+
+        // Width of the Countdown Widget
+        width: MediaQuery.of(context).size.width / 5,
+
+        // Height of the Countdown Widget
+        height: MediaQuery.of(context).size.height / 5,
+
+        // Default Color for Countdown Timer
+        color: Colors.grey,
+
+        // Filling Color for Countdown Timer
+        fillColor: Colors.red,
+
+        // Background Color for Countdown Widget
+        backgroundColor: Colors.transparent,
+
+        // Border Thickness of the Countdown Circle
+        strokeWidth: 5.0,
+
+        // Text Style for Countdown Text
+        textStyle: TextStyle(
+            fontSize: 22.0, color: Colors.black, fontWeight: FontWeight.bold),
+
+        // true for reverse countdown (max to 0), false for forward countdown (0 to max)
+        isReverse: true,
+
+        // true for reverse animation, false for forward animation
+
+        // Optional [bool] to hide the [Text] in this widget.
+        isTimerTextShown: true,
+
+        // Function which will execute when the Countdown Ends
+        onComplete: () {
+          // Here, do whatever you want
+          print('Countdown Ended');
+        },
+      );
+}
   buildPostVideo() {
     _videoPlayerController = VideoPlayerController.network(
       mediaUrl,
@@ -867,7 +975,10 @@ class _PostState extends State<Post> {
     _videoPlayerController.play();
     _videoPlayerController.setLooping(true);
     _videoPlayerController.setVolume(25.0);
-    return FutureBuilder(
+    return   Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+      FutureBuilder(
       future: futureController,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
@@ -879,7 +990,16 @@ class _PostState extends State<Post> {
           return Center(child: linearProgress());
         }
       },
-    );
+    ),
+   !isDisLiked && !isLiked && !isNoComment? Positioned(
+                                  right:0.0,                                    
+                                   top:0.0,
+                                      child: countDownTimer(),
+                                    ):Text(""),
+          
+        ]);
+    
+    
   }
 
   getvideo(mediaUrl) {
@@ -1055,33 +1175,6 @@ class _PostState extends State<Post> {
   }
 }
 
-buildDesciptionImage(description, context) {
-  return Container(
-    width: MediaQuery.of(context).size.width,
-    height: MediaQuery.of(context).size.height - 280,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.redAccent, Colors.pinkAccent]),
-    ),
-    child: Center(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-              child: Text(
-            description,
-            maxLines: 3,
-            style: TextStyle(color: Colors.white, fontSize: 25.0),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-          ))
-        ],
-      ),
-    ),
-  );
-}
 
 showComments(BuildContext context,
     {String postId, String ownerId, String mediaUrl}) {
