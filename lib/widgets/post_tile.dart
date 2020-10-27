@@ -55,7 +55,7 @@ class PostTile extends StatelessWidget {
           ? buildDescription(post.description)
           : post.postType == "image"
               ? ClipRRect(
-  borderRadius: BorderRadius.circular(10.0),
+  borderRadius: BorderRadius.circular(0.0),
   child: 
               cachedNetworkImage(post.mediaUrl))
               : Container(
@@ -64,11 +64,11 @@ class PostTile extends StatelessWidget {
           gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.redAccent, Colors.pinkAccent]),
+              colors: [Colors.grey, Colors.black]),
                border: Border.all(
       color: Colors.red[500],
     ),
-   borderRadius: BorderRadius.circular(10)
+   borderRadius: BorderRadius.circular(0)
               ),
               
              child: buildPostVideo(post.mediaUrl),)
@@ -107,11 +107,9 @@ class PostTile extends StatelessWidget {
           gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.redAccent, Colors.pinkAccent]),
-               border: Border.all(
-      color: Colors.red[500],
-    ),
-   borderRadius: BorderRadius.circular(10)
+              colors: [Colors.grey, Colors.black]),
+               
+   borderRadius: BorderRadius.circular(0)
               ),
       child: Center(
         child: Row(
@@ -139,7 +137,7 @@ class PostTile extends StatelessWidget {
           gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.redAccent, Colors.pinkAccent])),
+              colors: [Colors.grey, Colors.black])),
       child: Center(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

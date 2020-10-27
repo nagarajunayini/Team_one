@@ -134,6 +134,7 @@ class _HomeState extends State<Home> {
   createUserInFirestore() async {
     // 1) check if user exists in users collection in database (according to their id)
     final GoogleSignInAccount user = googleSignIn.currentUser;
+    print(user.id);
     DocumentSnapshot doc = await usersRef.document(user.id).get();
 
     if (!doc.exists) {
@@ -208,7 +209,7 @@ class _HomeState extends State<Home> {
       body: PageView(
         children: <Widget>[
           Timeline(currentUser: currentUser),
-          ContestTimeline(currentUser: currentUser),
+          // ContestTimeline(currentUser: currentUser),
           Upload(currentUser: currentUser),
           // Search(),
           Menu(currentUser: currentUser),
@@ -217,26 +218,26 @@ class _HomeState extends State<Home> {
         onPageChanged: onPageChanged,
         physics: NeverScrollableScrollPhysics(),
       ),
-      floatingActionButton: FloatingActionButton(
-                 elevation:20.0,
+  //     floatingActionButton: FloatingActionButton(
+  //                elevation:20.0,
 
-    backgroundColor: Colors.blueGrey,
-    child: const Icon(
-      Icons.add,
+  //   backgroundColor: Colors.blueGrey,
+  //   child: const Icon(
+  //     Icons.add,
     
-      color: Colors.white,
-    ),
+  //     color: Colors.white,
+  //   ),
     
-    onPressed: () {
-      Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Upload(currentUser: currentUser),
-                    ),
-                  );
-    },
-  ),
-  floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+  //   onPressed: () {
+  //     Navigator.push(
+  //                   context,
+  //                   MaterialPageRoute(
+  //                     builder: (context) => Upload(currentUser: currentUser),
+  //                   ),
+  //                 );
+  //   },
+  // ),
+  // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
   
       bottomNavigationBar: CupertinoTabBar(
       
@@ -246,14 +247,15 @@ class _HomeState extends State<Home> {
       
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home)),
-            BottomNavigationBarItem(icon: Icon(Icons.stars)),
-            // BottomNavigationBarItem(
-            //   icon: Icon(
-            //     Icons.photo_camera,
-            //     size: 35.0,
-            //   ),
-            // ),
-            BottomNavigationBarItem(icon: Icon(Icons.search,color: Colors.transparent,)),
+            // BottomNavigationBarItem(icon: Icon(Icons.stars)),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.add_box,
+                size: 35.0,
+                
+              ),
+            ),
+            // BottomNavigationBarItem(icon: Icon(Icons.search,color: Colors.transparent,)),
             BottomNavigationBarItem(icon: Icon(Icons.menu)),
           ]),
     );

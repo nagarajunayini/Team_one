@@ -943,10 +943,10 @@ countDownTimer(){
         fillColor: Colors.red,
 
         // Background Color for Countdown Widget
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.black12,
 
         // Border Thickness of the Countdown Circle
-        strokeWidth: 5.0,
+        strokeWidth: 0.0,
 
         // Text Style for Countdown Text
         textStyle: TextStyle(

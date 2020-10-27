@@ -10,12 +10,14 @@ import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/activity_feed.dart';
 import 'package:fluttershare/pages/home.dart';
 import 'package:fluttershare/pages/search.dart';
+import 'package:fluttershare/widgets/custom_image.dart';
 import 'package:fluttershare/widgets/post.dart';
 import 'package:fluttershare/widgets/post_tile.dart';
 import 'package:fluttershare/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
 
-
+import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
 //=================================
 
 final usersRef = Firestore.instance.collection('users');
@@ -48,6 +50,10 @@ class _TimelineState extends State<Timeline> {
   String fileType = "";
   String postId = Uuid().v4();
   bool isPostsLoading = true;
+   Duration _duration = new Duration();
+  Duration _position = new Duration();
+  AudioPlayer advancedPlayer;
+  AudioCache audioCache;
   List<String> filters = [
     "All",
     "Featured Today's",
@@ -72,8 +78,21 @@ class _TimelineState extends State<Timeline> {
     getProfilePosts();
     getPostCategories();
     getAllUsers();
+    initPlayer();
   }
+void initPlayer() {
+    advancedPlayer = new AudioPlayer();
+    audioCache = new AudioCache(fixedPlayer: advancedPlayer);
 
+    advancedPlayer.durationHandler = (d) => setState(() {
+          _duration = d;
+        });
+
+    advancedPlayer.positionHandler = (p) => setState(() {
+          _position = p;
+        });
+    audioCache.play('background.mp3');
+  }
   getPostCategories() {
     categoriesRef.getDocuments().then((QuerySnapshot snapshot) {
       snapshot.documents.forEach((DocumentSnapshot doc) {
@@ -219,9 +238,17 @@ class _TimelineState extends State<Timeline> {
         children: <Widget>[
           buildFilters(),
           buildDevider(),
+
           Expanded(
             child: ListView(
               children: <Widget>[
+                                          buildLikeStaggered(0,1,2),
+                                          buildLikeStaggered1(3,4,5),
+                                          buildLikeStaggered2(6,5,8),
+                                          buildLikeStaggered2(9,10,11),
+                                           buildLikeStaggered(12,13,14),
+
+
                 buildProfilePosts(),
                 Divider(
                   height: 2.0,
@@ -280,6 +307,118 @@ class _TimelineState extends State<Timeline> {
     );
   }
 
+  buildLikeStaggered1(one,two,three){
+  if (isLoading) {
+      return Container();
+    } else {
+     return Container(
+       height:300.0,
+       width: MediaQuery.of(context).size.width,
+       child:Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+         Padding(
+          padding: const EdgeInsets.only(right: 2.0),
+          child:  Container(width: 242,child:  PostTile(posts[one])),
+         
+          ),
+        Padding(
+                    padding: const EdgeInsets.only(bottom: 2.0),
+
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom:2.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(height: 148.0, width: MediaQuery.of(context).size.width-244,
+                  child:  PostTile(posts[two])),
+                ],
+              ),
+            ),
+            Container(height: 148.0,width: MediaQuery.of(context).size.width-244, child:   PostTile(posts[three])),
+          ]),
+        ),
+        
+        
+      ]) ,);
+     
+     ;
+     
+    
+  }
+}
+
+buildLikeStaggered2(one,two,three){
+  if (isLoading) {
+      return Container();
+    } else {
+     return Container(
+       height:120.0,
+       width: MediaQuery.of(context).size.width,
+       child:Row(
+         crossAxisAlignment: CrossAxisAlignment.stretch, 
+         children: [
+        Padding(
+          padding: const EdgeInsets.only(top:1.0,right: 2.0,bottom: 2.0),
+          child:  Container(  width: MediaQuery.of(context).size.width/3,child:  PostTile(posts[one])),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top:1.0,right:2.0,bottom: 2.0),
+          child:  Container( width: MediaQuery.of(context).size.width/3,child:  PostTile(posts[two])),
+         
+          ),
+          Padding(
+          padding: const EdgeInsets.only(top:1.0,bottom: 2.0),
+          child:  Container( width: MediaQuery.of(context).size.width/3-4,child:  PostTile(posts[three])),
+         
+          ),
+        
+      ]) ,);
+     
+     ;
+     
+    
+  }
+}
+
+buildLikeStaggered(one,two,three){
+  if (isLoading) {
+      return Container();
+    } else {
+     return Container(
+       height:300.0,
+       width: MediaQuery.of(context).size.width,
+       child:Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom:1.0),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom:2.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(height: 147.0, width:119, 
+                  child:  PostTile(posts[one])),
+                ],
+              ),
+            ),
+            Container(height: 148.0,width:119, child:   PostTile(posts[three])),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left:2.0,bottom: 3.0),
+          child:  Container(width:MediaQuery.of(context).size.width-121,child:  PostTile(posts[two])),
+         
+          ),
+        
+      ]) ,);
+     
+     ;
+     
+    
+  }
+}
   buildProfilePosts() {
     if (isLoading) {
       return linearProgress();
@@ -311,7 +450,7 @@ class _TimelineState extends State<Timeline> {
       return GridView.count(
         crossAxisCount: 3,
         childAspectRatio: 1.0,
-        mainAxisSpacing: 1.5,
+        mainAxisSpacing: 2.5,
         crossAxisSpacing: 1.5,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
