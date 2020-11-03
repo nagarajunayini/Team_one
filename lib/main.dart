@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttershare/pages/home.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   Firestore.instance.settings(timestampsInSnapshotsEnabled: true).then((_) {
     // print("Timestamps enabled in snapshots\n");
   }, onError: (_) {

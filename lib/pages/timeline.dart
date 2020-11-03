@@ -15,9 +15,10 @@ import 'package:fluttershare/widgets/post.dart';
 import 'package:fluttershare/widgets/post_tile.dart';
 import 'package:fluttershare/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
-
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 //=================================
 
 final usersRef = Firestore.instance.collection('users');
@@ -82,7 +83,7 @@ class _TimelineState extends State<Timeline> {
   }
 void initPlayer() {
     advancedPlayer = new AudioPlayer();
-    audioCache = new AudioCache(fixedPlayer: advancedPlayer);
+    audioCache = new AudioCache();
 
     advancedPlayer.durationHandler = (d) => setState(() {
           _duration = d;
@@ -240,21 +241,22 @@ void initPlayer() {
           buildDevider(),
 
           Expanded(
-            child: ListView(
-              children: <Widget>[
-                                          buildLikeStaggered(0,1,2),
-                                          buildLikeStaggered1(3,4,5),
-                                          buildLikeStaggered2(6,5,8),
-                                          buildLikeStaggered2(9,10,11),
-                                           buildLikeStaggered(12,13,14),
+            child: buildProfilePosts(),
+            // child: ListView(
+            //   children: <Widget>[
+            //                               buildLikeStaggered(0,1,2),
+            //                               buildLikeStaggered1(3,4,5),
+            //                               buildLikeStaggered2(6,5,8),
+            //                               buildLikeStaggered2(9,10,11),
+            //                                buildLikeStaggered(12,13,14),
 
 
-                buildProfilePosts(),
-                Divider(
-                  height: 2.0,
-                ),
-              ],
-            ),
+               
+            //     Divider(
+            //       height: 2.0,
+            //     ),
+            //   ],
+            // ),
           ),
           // Divider(),
         ],
@@ -443,19 +445,132 @@ buildLikeStaggered(one,two,three){
         ),
       );
     } else {
-      List<GridTile> gridTiles = [];
-      posts.forEach((post) {
-        gridTiles.add(GridTile(child: PostTile(post)));
-      });
-      return GridView.count(
-        crossAxisCount: 3,
-        childAspectRatio: 1.0,
-        mainAxisSpacing: 2.5,
-        crossAxisSpacing: 1.5,
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        children: gridTiles,
-      );
+      // List<GridTile> gridTiles = [];
+      // posts.forEach((post) {
+      //   gridTiles.add(GridTile(child: PostTile(post)));
+      // });
+      return StaggeredGridView.countBuilder(
+      crossAxisCount: 3,
+      itemCount: posts.length,
+      itemBuilder: (context, index) => PostTile(posts[index]),
+      staggeredTileBuilder: (index) => StaggeredTile.count(
+          (index % 7 == 0) ? 2 : 1, (index % 7 == 0) ? 2 : 1),
+      mainAxisSpacing: 1.0,
+      crossAxisSpacing: 1.0,
+    );
+      
+      // GridView.count(
+      //   crossAxisCount: 3,
+      //   childAspectRatio: 1.0,
+      //   mainAxisSpacing: 2.5,
+      //   crossAxisSpacing: 1.5,
+      //   shrinkWrap: true,
+      //   physics: NeverScrollableScrollPhysics(),
+      //   children: gridTiles,
+      // );
     }
   }
 }
+
+class ImageCard extends StatelessWidget {
+  const ImageCard({this.imageData});
+
+  final ImageData imageData;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.0),
+      child: Image.network(imageData.imageUrl, fit: BoxFit.cover),
+    );
+  }
+}
+
+class ImageData {
+  final String id;
+  final String imageUrl;
+
+  const ImageData({
+    @required this.id,
+    @required this.imageUrl,
+  });
+}
+
+const imageList = [
+  ImageData(
+    id: 'id-001',
+    imageUrl: 'https://picsum.photos/seed/image001/500/500',
+  ),
+  ImageData(
+    id: 'id-002',
+    imageUrl: 'https://picsum.photos/seed/image002/500/800',
+  ),
+  ImageData(
+    id: 'id-003',
+    imageUrl: 'https://picsum.photos/seed/image003/500/300',
+  ),
+  ImageData(
+    id: 'id-004',
+    imageUrl: 'https://picsum.photos/seed/image004/500/900',
+  ),
+  ImageData(
+    id: 'id-005',
+    imageUrl: 'https://picsum.photos/seed/image005/500/600',
+  ),
+  ImageData(
+    id: 'id-006',
+    imageUrl: 'https://picsum.photos/seed/image006/500/500',
+  ),
+  ImageData(
+    id: 'id-007',
+    imageUrl: 'https://picsum.photos/seed/image007/500/400',
+  ),
+  ImageData(
+    id: 'id-008',
+    imageUrl: 'https://picsum.photos/seed/image008/500/700',
+  ),
+  ImageData(
+    id: 'id-009',
+    imageUrl: 'https://picsum.photos/seed/image009/500/600',
+  ),
+  ImageData(
+    id: 'id-010',
+    imageUrl: 'https://picsum.photos/seed/image010/500/900',
+  ),
+  ImageData(
+    id: 'id-011',
+    imageUrl: 'https://picsum.photos/seed/image011/500/900',
+  ),
+  ImageData(
+    id: 'id-012',
+    imageUrl: 'https://picsum.photos/seed/image012/500/700',
+  ),
+  ImageData(
+    id: 'id-013',
+    imageUrl: 'https://picsum.photos/seed/image013/500/700',
+  ),
+  ImageData(
+    id: 'id-014',
+    imageUrl: 'https://picsum.photos/seed/image014/500/800',
+  ),
+  ImageData(
+    id: 'id-015',
+    imageUrl: 'https://picsum.photos/seed/image015/500/500',
+  ),
+  ImageData(
+    id: 'id-016',
+    imageUrl: 'https://picsum.photos/seed/image016/500/700',
+  ),
+  ImageData(
+    id: 'id-017',
+    imageUrl: 'https://picsum.photos/seed/image017/500/600',
+  ),
+  ImageData(
+    id: 'id-018',
+    imageUrl: 'https://picsum.photos/seed/image018/500/900',
+  ),
+  ImageData(
+    id: 'id-019',
+    imageUrl: 'https://picsum.photos/seed/image019/500/800',
+  ),
+];
