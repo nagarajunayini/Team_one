@@ -158,7 +158,7 @@ class Post extends StatefulWidget {
       commentCount: getCommentCount(this.comments));
 }
 
-class _PostState extends State<Post> {
+class _PostState extends State<Post> with WidgetsBindingObserver {
   final String currentUserId = currentUser?.id;
   final String postId;
   final String ownerId;
@@ -222,6 +222,7 @@ class _PostState extends State<Post> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     getRules();
     if (fromPage == "postTile") {
       initPlayer();
@@ -235,30 +236,71 @@ class _PostState extends State<Post> {
     }
   }
 
+ 
+
   @override
   void dispose() {
-    super.dispose();
-    advancedPlayer.stop();
+      WidgetsBinding.instance.removeObserver(this);
+       if(advancedPlayer!=null){
+      advancedPlayer.setReleaseMode(ReleaseMode.STOP);
+      advancedPlayer.stop();
+       }
     if (fromPage == "postTile") {
       print(isDisLiked);
       print(isLiked);
       print(isNoComment);
       if (!isDisLiked && !isLiked && !isNoComment) handleNoCommentPost();
     }
+    super.dispose();
+    
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // TODO: implement didChangeAppLifecycleState
+    super.didChangeAppLifecycleState(state);
+    switch(state){
+      case AppLifecycleState.paused:
+      print("audio paused");
+       if(advancedPlayer!=null){
+      advancedPlayer.pause();
+       }
+       break;
+       case AppLifecycleState.resumed:
+       print("audio resume");
+        if(advancedPlayer!=null){
+        advancedPlayer.resume();
+        }
+       break;
+
+      case AppLifecycleState.inactive:
+       if(advancedPlayer!=null){
+         advancedPlayer.stop();
+       }
+        break;
+      case AppLifecycleState.detached:
+       if(advancedPlayer!=null){
+        advancedPlayer.stop();
+       }
+        break;
+    }
   }
 
   void initPlayer() {
     advancedPlayer = new AudioPlayer();
-    audioCache = new AudioCache(fixedPlayer: advancedPlayer);
+    advancedPlayer.setUrl('https://luan.xyz/files/audio/ambient_c_motion.mp3');
+    advancedPlayer.setReleaseMode(ReleaseMode.LOOP);
+    advancedPlayer.play("https://luan.xyz/files/audio/ambient_c_motion.mp3");
+    // audioCache = new AudioCache(fixedPlayer: advancedPlayer);
 
-    advancedPlayer.durationHandler = (d) => setState(() {
-          _duration = d;
-        });
+    // advancedPlayer.durationHandler = (d) => setState(() {
+    //       _duration = d;
+    //     });
 
-    advancedPlayer.positionHandler = (p) => setState(() {
-          _position = p;
-        });
-    audioCache.play('background.mp3');
+    // advancedPlayer.positionHandler = (p) => setState(() {
+    //       _position = p;
+    //     });
+    // audioCache.play('background.mp3');
   }
 
   static List<charts.Series<PostReactions, String>> _createRandomData(

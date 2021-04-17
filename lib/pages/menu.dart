@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
@@ -225,8 +226,15 @@ class _MenuState extends State<Menu> {
   }
 
   logout() async {
-    await googleSignIn.signOut();
-    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+     await FirebaseAuth.instance.signOut();
+               final FirebaseUser user = await FirebaseAuth.instance.currentUser();
+
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => Home()),
+                  (route) => false);
+    // await googleSignIn.signOut();
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
   generateShortDeepLink() async {
     final DynamicLinkParameters parameters = DynamicLinkParameters(

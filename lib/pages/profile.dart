@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -382,9 +385,23 @@ class _ProfileState extends State<Profile> {
     //     });
   }
 
-  logout() async {
-    await googleSignIn.signOut();
-    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+  // logout() async {
+  //   // await googleSignIn.signOut();
+  //   await auth.signOut();
+  // }
+  Future<void> logout() async { debugger();
+   await googleSignIn.signOut();
+       await FirebaseAuth.instance.signOut();
+               final FirebaseUser user = await FirebaseAuth.instance.currentUser();
+
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => Home()),
+                  (route) => false);
+
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+
+    // await _googleSignIn.signOut();
   }
 
   generateShortDeepLink() async {

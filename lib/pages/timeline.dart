@@ -32,7 +32,7 @@ class Timeline extends StatefulWidget {
   _TimelineState createState() => _TimelineState();
 }
 
-class _TimelineState extends State<Timeline> {
+class _TimelineState extends State<Timeline> with WidgetsBindingObserver {
   final String currentUserId = currentUser?.id;
   bool isLoading = false;
   int postCount = 0;
@@ -74,6 +74,7 @@ class _TimelineState extends State<Timeline> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     getRules();
     getCurrentUser();
     getProfilePosts();
@@ -81,18 +82,63 @@ class _TimelineState extends State<Timeline> {
     getAllUsers();
     initPlayer();
   }
+  @override
+  void dispose() {
+      WidgetsBinding.instance.removeObserver(this);
+       if(advancedPlayer!=null){
+      advancedPlayer.setReleaseMode(ReleaseMode.STOP);
+      advancedPlayer.stop();
+       }
+    super.dispose();
+    
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // TODO: implement didChangeAppLifecycleState
+    super.didChangeAppLifecycleState(state);
+    switch(state){
+      case AppLifecycleState.paused:
+      print("audio paused");
+      if(advancedPlayer!=null){
+        advancedPlayer.pause();
+      }
+      
+       break;
+       case AppLifecycleState.resumed:
+       print("audio resume");
+        if(advancedPlayer!=null){
+        advancedPlayer.resume();
+        }
+       break;
+
+      case AppLifecycleState.inactive:
+       if(advancedPlayer!=null){
+         advancedPlayer.stop();
+       }
+        break;
+      case AppLifecycleState.detached:
+       if(advancedPlayer!=null){
+        advancedPlayer.stop();
+       }
+        break;
+    }
+  }
 void initPlayer() {
     advancedPlayer = new AudioPlayer();
-    audioCache = new AudioCache();
+    advancedPlayer = new AudioPlayer();
+    advancedPlayer.setUrl('https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010');
+    advancedPlayer.setReleaseMode(ReleaseMode.LOOP);
+    advancedPlayer.play("https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010");
+    // audioCache = new AudioCache();
 
-    advancedPlayer.durationHandler = (d) => setState(() {
-          _duration = d;
-        });
+    // advancedPlayer.durationHandler = (d) => setState(() {
+    //       _duration = d;
+    //     });
 
-    advancedPlayer.positionHandler = (p) => setState(() {
-          _position = p;
-        });
-    audioCache.play('background.mp3');
+    // advancedPlayer.positionHandler = (p) => setState(() {
+    //       _position = p;
+    //     });
+    // audioCache.play('background.mp3');
   }
   getPostCategories() {
     categoriesRef.getDocuments().then((QuerySnapshot snapshot) {
@@ -212,7 +258,7 @@ void initPlayer() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: new Text('TEAM ONE'),
+        title: new Text('STAND IV'),
         actions: [
           IconButton(
             icon: Icon(Icons.notifications_active),

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,6 +9,7 @@ import 'package:fluttershare/models/postCategory.dart';
 import 'package:fluttershare/models/rules.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/models/userLevels.dart';
+import 'package:fluttershare/pages/profile.dart';
 import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
@@ -282,7 +284,7 @@ File file;
   }
 
   createPost() {
-    Navigator.pop(context);
+    // Navigator.pop(context);
     if (widget.currentUser.referralPoints >= selectedPostValue) {
       // if (captionController.text != "" && captionController.text != null) {
       userPostRef.document(postId).setData({
@@ -305,6 +307,7 @@ File file;
       });
       captionController.clear();
       debitWalletAmount(selectedPostValue);
+      
       addDebitedAmountToPostPoolingAmount(selectedPostValue, postId);
       _showMyDialog("Success", "Your post is yet to verify.",
           "Once verified, it is visible to all.");
@@ -357,7 +360,14 @@ File file;
             FlatButton(
               child: Text('Ok'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).maybePop();
+                selectedCategories.length=0;
+              //  Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (context) => Profile(profileId: currentUser?.id),
+              //       ),
+              //     );
               },
             ),
           ],

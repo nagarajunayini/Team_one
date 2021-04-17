@@ -75,7 +75,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                             height: 10.0,
                           ),
                           Text(
-                            "Team One",
+                            "STAND IV",
                             style: TextStyle(
                               fontSize: 22.0,
                               color: Colors.white,

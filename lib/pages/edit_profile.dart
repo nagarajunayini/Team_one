@@ -17,6 +17,9 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   TextEditingController displayNameController = TextEditingController();
+    TextEditingController emailController = TextEditingController();
+
+  
   TextEditingController bioController = TextEditingController();
   bool isLoading = false;
   String username;
@@ -25,7 +28,7 @@ class _EditProfileState extends State<EditProfile> {
   bool _displayNameValid = true;
   bool _bioValid = true;
   var gender = ["Male", "Female", "Others"];
-  var religion = ["Hindu", "Muslim", "Christian", "Others"];
+  var religion = ["All","Politcs", "Sports", "Technology", "Wether","Environment","Mrdicine","Journalism","Films","Arts"];
   var city = [
     "Hyderabad",
     "Bangolore",
@@ -52,6 +55,7 @@ class _EditProfileState extends State<EditProfile> {
     DocumentSnapshot doc = await usersRef.document(widget.currentUserId).get();
     user = User.fromDocument(doc);
     displayNameController.text = user.username;
+    emailController.text= user.email;
     if (user.extraInfo != null && user.extraInfo.length >= 1) {
       user.extraInfo.forEach((a) => {
             if (this.city.indexOf(a) > -1)
@@ -63,7 +67,7 @@ class _EditProfileState extends State<EditProfile> {
           });
     } else {
       this.selectedGender = "Male";
-      this.selectedReligion = "Hindu";
+      this.selectedReligion = "All";
       this.selectedCity = "Hyderabad";
     }
 
@@ -83,9 +87,13 @@ class _EditProfileState extends State<EditProfile> {
           : _bioValid = true;
     });
 
-    if (_displayNameValid && _bioValid) {
-      usersRef.document(widget.currentUserId).updateData({
+    print(validateEmail(emailController.text));
+
+    if (_displayNameValid && _bioValid ) {
+      if(validateEmail(emailController.text) == null){
+        usersRef.document(widget.currentUserId).updateData({
         "displayName": displayNameController.text,
+        "email":emailController.text,
         "extraInfo": [
           this.selectedCity,
           this.selectedGender,
@@ -93,13 +101,29 @@ class _EditProfileState extends State<EditProfile> {
         ],
       });
       SnackBar snackbar = SnackBar(content: Text("Profile updated!"));
-      _scaffoldKey.currentState.showSnackBar(snackbar);
+      _scaffoldKey.currentState.showSnackBar(snackbar);  
+      }else{
+ SnackBar snackbar = SnackBar(content: Text("Enter Valid Email"));
+      _scaffoldKey.currentState.showSnackBar(snackbar); 
+      }
+      
     }
   }
 
   logout() async {
     await googleSignIn.signOut();
     Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+  }
+  String validateEmail(String value) {
+    Pattern pattern =
+        r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]"
+        r"{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]"
+        r"{0,253}[a-zA-Z0-9])?)*$";
+    RegExp regex = new RegExp(pattern);
+    if (!regex.hasMatch(value) || value == null)
+      return 'Enter a valid email address';
+    else
+      return null;
   }
 
   @override
@@ -150,6 +174,14 @@ class _EditProfileState extends State<EditProfile> {
                           decoration: InputDecoration(labelText: "userName"),
                         ),
                       ),
+                      Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: TextFormField(
+                    validator: validateEmail,
+                    controller: emailController,
+                    decoration: InputDecoration(labelText: "email"),
+                  ),
+                ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
