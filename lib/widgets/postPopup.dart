@@ -27,7 +27,7 @@ import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-class Post extends StatefulWidget {
+class PostPopup extends StatefulWidget {
   final String postId;
   final String ownerId;
   final String username;
@@ -43,9 +43,11 @@ class Post extends StatefulWidget {
   final int postValue;
   final int postDeductionValue;
   final String fromPage;
+  final OverlayEntry popupDialog;
+
   List<dynamic> postCategory = [];
 
-  Post(
+  PostPopup(
       {this.postId,
       this.ownerId,
       this.username,
@@ -61,10 +63,11 @@ class Post extends StatefulWidget {
       this.postValue,
       this.postDeductionValue,
       this.postCategory,
-      this.fromPage});
+      this.fromPage,
+      this.popupDialog});
 
-  factory Post.fromDocument(DocumentSnapshot doc) {
-    return Post(
+  factory PostPopup.fromDocument(DocumentSnapshot doc) {
+    return PostPopup(
         postId: doc['postId'],
         ownerId: doc['ownerId'],
         username: doc['username'],
@@ -79,7 +82,8 @@ class Post extends StatefulWidget {
         postType: doc['postType'],
         postValue: doc['postValue'],
         postDeductionValue: doc['postDeductionValue'],
-        postCategory: doc['postCategory']);
+        postCategory: doc['postCategory'],
+        popupDialog: doc['popupDialog'],);
   }
 
   int getLikeCount(likes) {
@@ -135,7 +139,7 @@ class Post extends StatefulWidget {
   }
 
   @override
-  _PostState createState() => _PostState(
+  _PostPopupState createState() => _PostPopupState(
       postId: this.postId,
       ownerId: this.ownerId,
       username: this.username,
@@ -155,10 +159,11 @@ class Post extends StatefulWidget {
       postDeductionValue: this.postDeductionValue,
       postCategory: this.postCategory,
       fromPage: this.fromPage,
-      commentCount: getCommentCount(this.comments));
+      commentCount: getCommentCount(this.comments),
+      popupDialog: this.popupDialog);
 }
 
-class _PostState extends State<Post> with WidgetsBindingObserver {
+class _PostPopupState extends State<PostPopup> with WidgetsBindingObserver {
   final String currentUserId = currentUser?.id;
   final String postId;
   final String ownerId;
@@ -198,7 +203,9 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
   AudioCache audioCache;
    CountDownController _controller = CountDownController();
 
-  _PostState(
+  final OverlayEntry popupDialog;
+
+  _PostPopupState(
       {this.postId,
       this.ownerId,
       this.username,
@@ -218,7 +225,8 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
       this.postDeductionValue,
       this.postCategory,
       this.postType,
-      this.fromPage});
+      this.fromPage,
+      this.popupDialog});
   @override
   void initState() {
     super.initState();
@@ -230,8 +238,11 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
       Timer(
           Duration(seconds: 20),
           () => {
+
                 if (!isDisLiked && !isLiked && !isNoComment)
-                  {handleNoCommentPost()}
+                  {handleNoCommentPost()},
+                  if( popupDialog!=null ){popupDialog.remove()}
+
               });
     }
   }
@@ -240,6 +251,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    print("post popup closed");
       WidgetsBinding.instance.removeObserver(this);
        if(advancedPlayer!=null){
       advancedPlayer.setReleaseMode(ReleaseMode.STOP);
@@ -291,16 +303,6 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
     advancedPlayer.setUrl('https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010');
     advancedPlayer.setReleaseMode(ReleaseMode.LOOP);
     advancedPlayer.play('https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010');
-    // audioCache = new AudioCache(fixedPlayer: advancedPlayer);
-
-    // advancedPlayer.durationHandler = (d) => setState(() {
-    //       _duration = d;
-    //     });
-
-    // advancedPlayer.positionHandler = (p) => setState(() {
-    //       _position = p;
-    //     });
-    // audioCache.play('background.mp3');
   }
 
   static List<charts.Series<PostReactions, String>> _createRandomData(
@@ -543,6 +545,8 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
         Timer(Duration(milliseconds: 500), () {
           setState(() {
             showHeart = false;
+                              if( popupDialog!=null ){popupDialog.remove();}
+
           });
         });
       }
@@ -628,6 +632,8 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
         Timer(Duration(milliseconds: 500), () {
           setState(() {
             showHeart = false;
+           if( popupDialog!=null ){popupDialog.remove();}
+
           });
         });
       }
@@ -1113,19 +1119,19 @@ countDownTimer(){
                             ],
                           ),
             Padding(padding: EdgeInsets.only(top: 40.0, left: 10.0)),
-            GestureDetector(
-              onTap: () => showComments(
-                    context,
-                    postId: postId,
-                    ownerId: ownerId,
-                    mediaUrl: mediaUrl,
-                  ),
-              child: Icon(
-                Icons.chat,
-                size: 28.0,
-                color: Colors.blue[900],
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () => showComments(
+            //         context,
+            //         postId: postId,
+            //         ownerId: ownerId,
+            //         mediaUrl: mediaUrl,
+            //       ),
+            //   child: Icon(
+            //     Icons.chat,
+            //     size: 28.0,
+            //     color: Colors.blue[900],
+            //   ),
+            // ),
           ],
         ),
         currentUserId == ownerId || isDisLiked || isLiked || isNoComment
@@ -1176,6 +1182,7 @@ countDownTimer(){
           showAxisLine: true, renderSpec: new charts.NoneRenderSpec()),
     );
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -1184,7 +1191,6 @@ countDownTimer(){
     isNoComment = (noComments[currentUserId] == true);
     if (fromPage == "postTile") {
       return Scaffold(
-          appBar: header(context, titleText: "Post Details"),
           body: ListView(
             children: <Widget>[
               buildPostHeader(),

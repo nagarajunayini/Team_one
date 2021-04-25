@@ -285,7 +285,8 @@ File file;
 
   createPost() {
     // Navigator.pop(context);
-    if (widget.currentUser.referralPoints >= selectedPostValue) {
+    if(selectedPostValue !=0){
+      if (widget.currentUser.referralPoints >= selectedPostValue) {
       // if (captionController.text != "" && captionController.text != null) {
       userPostRef.document(postId).setData({
         "postId": postId,
@@ -306,6 +307,7 @@ File file;
         "postCategory":this.selectedCategories
       });
       captionController.clear();
+      mediaUrl ="";
       debitWalletAmount(selectedPostValue);
       
       addDebitedAmountToPostPoolingAmount(selectedPostValue, postId);
@@ -318,6 +320,13 @@ File file;
           "You do not have enough points to post the content.",
           "Please refer this app to your loved one and earn points.");
     }
+    }else{
+      _showMyDialog(
+          "Warning",
+          "Please select the post value.",
+          "");
+    }
+    
   }
 
   addDebitedAmountToPostPoolingAmount(userPostdeductionValue, postId) {

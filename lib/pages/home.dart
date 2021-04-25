@@ -8,6 +8,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/create_account.dart';
+import 'package:fluttershare/pages/landingPage.dart';
+import 'package:fluttershare/pages/playHistory.dart';
 import 'package:fluttershare/pages/profile.dart';
 import 'package:fluttershare/pages/stats.dart';
 import 'package:fluttershare/pages/timeline.dart';
@@ -407,8 +409,10 @@ handleSignIn();
       key: _scaffoldKey,
       body: PageView(
         children: <Widget>[
-          Timeline(currentUser: currentUser),
+          LandingPage(currentUser: currentUser),
+          // Timeline(currentUser: currentUser),
           // ContestTimeline(currentUser: currentUser),
+          History(profileId: currentUser?.id),
           Upload(currentUser: currentUser),
           // Search(),
           Menu(currentUser: currentUser),
@@ -426,7 +430,7 @@ handleSignIn();
       
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home)),
-            // BottomNavigationBarItem(icon: Icon(Icons.stars)),
+            BottomNavigationBarItem(icon: Icon(Icons.history)),
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.add_box,

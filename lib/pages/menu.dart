@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,19 +13,63 @@ import 'package:share/share.dart';
 import 'home.dart';
 
 class Menu extends StatefulWidget {
-  final Widget child;
-  final User currentUser;
-  Menu({Key key, this.child, this.currentUser}) : super(key: key);
 
-  _MenuState createState() => _MenuState(currentUser: this.currentUser);
+  final User currentUser;
+
+  Menu({this.currentUser});
+
+  @override
+  _MenuState createState() => _MenuState();
+
 }
 
 class _MenuState extends State<Menu> {
-  final User currentUser;
-  _MenuState({this.currentUser});
+    final String currentUserId = currentUser?.id;
+  bool isLoading = false;
+  int walletPoints = 0;
+  List<User> userData = [];
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getCurrentUser();
+  }
+
+ 
+  getCurrentUser() async {
+    QuerySnapshot snapshot = await usersRef
+        .where("id", isEqualTo: currentUserId)
+        .getDocuments();
+    setState(() {
+      isLoading = true;
+      userData.addAll(
+          snapshot.documents.map((doc) => User.fromDocument(doc)).toList());
+          walletPoints =userData[0].referralPoints;
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return buildWidget();
+    
+    
+  }
+
+  buildWidget(){
+    if(!isLoading){
+      return Scaffold(
+
+        body:Center(
+          child:CircularProgressIndicator(
+              value: 100,
+              semanticsLabel: 'Linear progress indicator',
+            ),
+        )
+        
+      );
+    }else{
+ return Scaffold(
       body: Column(
         children: <Widget>[
           GestureDetector(
@@ -70,7 +115,7 @@ class _MenuState extends State<Menu> {
               margin: EdgeInsets.only(left: 15.0, right: 15.0),
               child: ListTile(
                 title: Text(
-                  "Wallet " + " " + currentUser.referralPoints.toString(),
+                  "Wallet " + " " + walletPoints.toString(),
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 15,
@@ -223,6 +268,8 @@ class _MenuState extends State<Menu> {
         ],
       ),
     );
+    }
+   
   }
 
   logout() async {
