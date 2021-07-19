@@ -5,6 +5,8 @@ class UserInfo {
    String userName;
    List<dynamic> extraInfo;
 
+   List<dynamic> interests;
+
   // UserInfo(this.email, this.userName, this.extraInfo);
    String geekName;
     
@@ -36,6 +38,16 @@ class UserInfo {
   // to set the input
   set extra_Info (List<dynamic> list) {
     this.extraInfo = list;
+  }
+
+  List<dynamic> get _interests {
+    return interests;
+  }
+    
+  // Using the setter method
+  // to set the input
+  set _interests (List<dynamic> list) {
+    this.interests = list;
   }
 
   

@@ -241,7 +241,8 @@ class _PostPopupState extends State<PostPopup> with WidgetsBindingObserver {
 
                 if (!isDisLiked && !isLiked && !isNoComment)
                   {handleNoCommentPost()},
-                  if( popupDialog!=null ){popupDialog.remove()}
+                  if( popupDialog!=null ){popupDialog.remove(),
+                  _videoPlayerController.dispose()}
 
               });
     }
@@ -263,8 +264,8 @@ class _PostPopupState extends State<PostPopup> with WidgetsBindingObserver {
       print(isNoComment);
       if (!isDisLiked && !isLiked && !isNoComment) handleNoCommentPost();
     }
+    _videoPlayerController.dispose();
     super.dispose();
-    
   }
 
   @override
@@ -545,7 +546,8 @@ class _PostPopupState extends State<PostPopup> with WidgetsBindingObserver {
         Timer(Duration(milliseconds: 500), () {
           setState(() {
             showHeart = false;
-                              if( popupDialog!=null ){popupDialog.remove();}
+                              if( popupDialog!=null ){popupDialog.remove();
+                              _videoPlayerController.dispose();}
 
           });
         });
@@ -632,7 +634,7 @@ class _PostPopupState extends State<PostPopup> with WidgetsBindingObserver {
         Timer(Duration(milliseconds: 500), () {
           setState(() {
             showHeart = false;
-           if( popupDialog!=null ){popupDialog.remove();}
+           if( popupDialog!=null ){popupDialog.remove();_videoPlayerController.dispose();}
 
           });
         });
@@ -1020,8 +1022,8 @@ countDownTimer(){
       mediaUrl,
     );
     futureController = _videoPlayerController.initialize();
-    _videoPlayerController.play();
-    _videoPlayerController.setLooping(true);
+    
+    // _videoPlayerController.setLooping(true);
     _videoPlayerController.setVolume(25.0);
     return   Stack(
         alignment: Alignment.center,
@@ -1030,6 +1032,7 @@ countDownTimer(){
       future: futureController,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          _videoPlayerController.play();
           return AspectRatio(
             aspectRatio: _videoPlayerController.value.aspectRatio,
             child: VideoPlayer(_videoPlayerController),

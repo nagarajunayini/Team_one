@@ -1,8 +1,17 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/models/userInfo.dart';
+import 'package:multi_select_flutter/chip_field/multi_select_chip_field.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:multi_select_flutter/util/multi_select_list_type.dart';
+
+import 'home.dart';
+final usersRef = Firestore.instance.collection('users');
 
 class CreateAccount extends StatefulWidget {
   @override
@@ -13,14 +22,22 @@ class _CreateAccountState extends State<CreateAccount> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   TextEditingController displayNameController = TextEditingController();
     TextEditingController emailController = TextEditingController();
+        TextEditingController referalCode = TextEditingController();
+
 
   final _formKey = GlobalKey<FormState>();
   String username;
   String email;
+  String referalApplied="No";
   List<UserInfo> userDetails = [];
   List<dynamic> extraIfo = [];
+  List<dynamic> _selectedInterests =[];
+
+    List<User> userData = [];
+
   var gender = ["Male", "Female", "Others"];
-  var religion = ["All","Politcs", "Sports", "Technology", "Wether","Environment","Mrdicine","Journalism","Films","Arts"];
+  var religion = ["Hindu", "Muslim", "Christian", "Others"];
+  var intersets = ["Politcs", "Sports", "Technology", "Wether","Environment","Mdicine","Journalism","Films","Arts"];
   var city = [
     "Hyderabad",
     "Bangolore",
@@ -59,10 +76,11 @@ _showMyDialog( "Warning",
         this.extraIfo = [
       this.selectedCity,
       this.selectedGender,
-      this.selectedReligion
+      this.selectedReligion,
     ];
     UserInfo  userData = new UserInfo();
     userData.email=emailController.text;
+    userData.interests=this._selectedInterests; 
     userData.userName=displayNameController.text;
     userData.extraInfo = this.extraIfo;
     this.userDetails.add(userData);
@@ -76,6 +94,38 @@ _showMyDialog( "Warning",
       }
     }
     
+  }
+  apply(){
+    setState(() {
+         referalApplied="inProgress";
+        });
+  
+    usersRef
+        .where("id", isEqualTo: referalCode.text)
+        .getDocuments()
+        .then((QuerySnapshot snapshot) {
+      snapshot.documents.forEach((DocumentSnapshot doc) {
+        userData.add(User.fromDocument(doc));
+        usersRef.document(userData[0].id).setData({
+      "id": userData[0].id,
+      "username": userData[0].username,
+      "photoUrl": userData[0].photoUrl,
+      "email": userData[0].email,
+      "displayName": userData[0].displayName,
+      "bio": userData[0].bio,
+      "timestamp": timestamp,
+      "credits":userData[0].credits,
+      "referralPoints":
+          userData[0].referralPoints +50,
+      "extraInfo":userData[0].extraInfo,
+    });
+    setState(() {
+    referalApplied="completed";
+        });
+      });
+    });
+  
+
   }
 
    Future<void> _showMyDialog(status, message, message1) async {
@@ -267,40 +317,127 @@ _showMyDialog( "Warning",
                     ),
                   ],
                 ),
+                MultiSelectChipField(
+                        showHeader: true,
+                        title: Text('Interests'),
+  items: intersets.map((e) => MultiSelectItem(e, e)).toList(),
+  icon: Icon(Icons.check),
+  headerColor:Colors.white,
+  onTap: (values) {
+    _selectedInterests = values;
+  },
+),
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                   children: <Widget>[
+//                     Padding(
+//                         padding:
+//                             EdgeInsets.only(top: 0.0, left: 0.0, bottom: 20.0)),
+//                     Padding(
+//                       padding: EdgeInsets.only(
+//                         top: 10.0,
+//                       ),
+//                       child: Center(
+//                         child: Text(
+//                           "Interests:",
+//                           style: TextStyle(fontSize: 20.0),
+//                         ),
+//                       ),
+//                     ),
+//                     Padding(
+//                         padding: EdgeInsets.only(
+//                             top: 60.0, left: 150.0, right: 10.0)),
+//                             MultiSelectDialogField(
+//   items: religion.map((e) => MultiSelectItem(e, e)).toList(),
+//   listType: MultiSelectListType.CHIP,
+//   onConfirm: (values) {
+//     _selectedInterest = values;
+//   },
+// ),
+//                     // DropdownButton<String>(
+//                     //   items: religion.map((String dropdownItem) {
+//                     //     return DropdownMenuItem<String>(
+//                     //         value: dropdownItem, child: Text(dropdownItem));
+//                     //   }).toList(),
+//                     //   onChanged: (String selectedValue) {
+//                     //     setState(() {
+//                     //       this.selectedReligion = selectedValue;
+//                     //     });
+//                     //   },
+//                     //   value: this.selectedReligion,
+//                     // ),
+//                   ],
+//                 ),
+                
+               
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Padding(
-                        padding:
-                            EdgeInsets.only(top: 0.0, left: 0.0, bottom: 20.0)),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 10.0,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Interests:",
-                          style: TextStyle(fontSize: 20.0),
-                        ),
+  children: <Widget>[
+    Flexible(child:
+     Padding(
+                  padding: EdgeInsets.only(left:16.0,right:30.0,top:16.0,bottom:16.0),
+                 child:  TextField(
+  controller: referalCode,
+  decoration: InputDecoration(
+    hintText: "Enter Referal code(if any)",
+  ),
+),
+                ),),
+  referalApplied=='No'? GestureDetector(
+                  onTap: apply,
+                  child: Container(
+                    height: 50.0,
+                    width: 80.0,
+                    child: Center(
+                      child: Text(
+                        "Apply",
+                        style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
-                    Padding(
-                        padding: EdgeInsets.only(
-                            top: 60.0, left: 150.0, right: 10.0)),
-                    DropdownButton<String>(
-                      items: religion.map((String dropdownItem) {
-                        return DropdownMenuItem<String>(
-                            value: dropdownItem, child: Text(dropdownItem));
-                      }).toList(),
-                      onChanged: (String selectedValue) {
-                        setState(() {
-                          this.selectedReligion = selectedValue;
-                        });
-                      },
-                      value: this.selectedReligion,
+                  ),
+                ): referalApplied=='inProgress'?GestureDetector(
+                  onTap: apply,
+                  child: Container(
+                    height: 50.0,
+                    width: 80.0,
+                    child: Center(
+                      child: Text(
+                        "Wait",
+                        style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ],
+                  ),
+                ):GestureDetector(
+                  onTap: apply,
+                  child: Container(
+                    height: 50.0,
+                    width: 80.0,
+                    child: Center(
+                      child: Text(
+                        "Applied",
+                        style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
                 ),
+  ],
+),
+
+                  
+                
+
+
+                    
+                
+                   
                 GestureDetector(
                   onTap: submit,
                   child: Container(

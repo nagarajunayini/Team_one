@@ -4,6 +4,8 @@ import "package:flutter/material.dart";
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/home.dart';
 import 'package:fluttershare/widgets/progress.dart';
+import 'package:multi_select_flutter/chip_field/multi_select_chip_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 
 class EditProfile extends StatefulWidget {
   final String currentUserId;
@@ -28,7 +30,8 @@ class _EditProfileState extends State<EditProfile> {
   bool _displayNameValid = true;
   bool _bioValid = true;
   var gender = ["Male", "Female", "Others"];
-  var religion = ["All","Politcs", "Sports", "Technology", "Wether","Environment","Mrdicine","Journalism","Films","Arts"];
+  var religion = ["Hindu", "Muslim", "Christian", "Others"];
+  var interests = ["All","Politcs", "Sports", "Technology", "Wether","Environment","Mrdicine","Journalism","Films","Arts"];
   var city = [
     "Hyderabad",
     "Bangolore",
@@ -41,6 +44,8 @@ class _EditProfileState extends State<EditProfile> {
   String selectedGender;
   String selectedReligion;
   String selectedCity;
+
+  List<dynamic> _selectedInterests = [];
 
   @override
   void initState() {
@@ -56,6 +61,11 @@ class _EditProfileState extends State<EditProfile> {
     user = User.fromDocument(doc);
     displayNameController.text = user.username;
     emailController.text= user.email;
+    if(user.interests !=null && user.interests.length !=0){
+      this._selectedInterests = user.interests;
+    }else{
+      this._selectedInterests =[];
+    }
     if (user.extraInfo != null && user.extraInfo.length >= 1) {
       user.extraInfo.forEach((a) => {
             if (this.city.indexOf(a) > -1)
@@ -94,10 +104,12 @@ class _EditProfileState extends State<EditProfile> {
         usersRef.document(widget.currentUserId).updateData({
         "displayName": displayNameController.text,
         "email":emailController.text,
+        "interests": this._selectedInterests,
         "extraInfo": [
           this.selectedCity,
           this.selectedGender,
-          this.selectedReligion
+          this.selectedReligion,
+          
         ],
       });
       SnackBar snackbar = SnackBar(content: Text("Profile updated!"));
@@ -285,6 +297,16 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                         ],
                       ),
+                      MultiSelectChipField(
+                        decoration:BoxDecoration(),
+                      headerColor:Colors.white,
+                        title: Text("Interests"),
+  items: interests.map((e) => MultiSelectItem(e, e)).toList(),
+  icon: Icon(Icons.check),
+  onTap: (values) {
+    this._selectedInterests = values;
+  },
+),
                       GestureDetector(
                         onTap: updateProfileData,
                         child: Container(

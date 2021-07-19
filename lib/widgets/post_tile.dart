@@ -14,7 +14,7 @@ class PostTile extends StatelessWidget {
   VideoPlayerController _videoPlayerController;
   Future<void> futureController;
   PostTile(this.post);
-
+ 
   showPost(context) {
     Navigator.push(
       context,
@@ -40,7 +40,7 @@ class PostTile extends StatelessWidget {
       ),
     );
   }
-
+  
   @override
   Widget build(BuildContext context) {
     OverlayEntry _popupDialog;
@@ -82,13 +82,13 @@ class PostTile extends StatelessWidget {
       mediaUrl,
     );
     futureController = _videoPlayerController.initialize();
-    _videoPlayerController.play();
-    _videoPlayerController.setLooping(true);
+    // _videoPlayerController.setLooping(true);
     _videoPlayerController.setVolume(25.0);
     return FutureBuilder(
       future: futureController,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+              // _videoPlayerController.play();
           return AspectRatio(
             aspectRatio: _videoPlayerController.value.aspectRatio,
             child: VideoPlayer(_videoPlayerController),
@@ -310,6 +310,7 @@ class AnimatedDialogState extends State<AnimatedDialog>
     controller.addListener(() => setState(() {}));
     controller.forward();
   }
+  
 
   @override
   Widget build(BuildContext context) {

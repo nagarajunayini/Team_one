@@ -29,7 +29,7 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final String currentUserId = currentUser?.id;
-  String postOrientation = "list";
+  String postOrientation = "grid";
   bool isFollowing = false;
   bool isLoading = false;
   int postCount = 0;
@@ -37,6 +37,7 @@ class _ProfileState extends State<Profile> {
   int followerCount = 0;
   int followingCount = 0;
   List<Post> posts = [];
+  List<User> userData = [];
 
   @override
   void initState() {
@@ -45,6 +46,22 @@ class _ProfileState extends State<Profile> {
     getFollowers();
     getFollowing();
     checkIfFollowing();
+    getUserDetails();
+  }
+  @override
+  void dispose(){
+    super.dispose();
+  }
+
+  getUserDetails(){
+    usersRef
+        .where("id", isEqualTo: widget.profileId)
+        .getDocuments()
+        .then((QuerySnapshot snapshot) {
+      snapshot.documents.forEach((DocumentSnapshot doc) {
+        userData.add(User.fromDocument(doc));
+      });
+    });
   }
 
   checkIfFollowing() async {
@@ -273,7 +290,7 @@ class _ProfileState extends State<Profile> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.redAccent, Colors.pinkAccent]
+                colors: [Colors.redAccent, Colors.black]
               )
             ),
             child: Container(
@@ -286,7 +303,7 @@ class _ProfileState extends State<Profile> {
                   children: <Widget>[
                     CircleAvatar(
                       backgroundImage: NetworkImage(
-                        currentUser.photoUrl,
+                        userData[0].photoUrl,
                       ),
                       radius: 50.0,
                     ),
@@ -294,7 +311,7 @@ class _ProfileState extends State<Profile> {
                       height: 10.0,
                     ),
                     Text(
-                     currentUser.username,
+                     userData[0].username,
                       style: TextStyle(
                         fontSize: 22.0,
                         color: Colors.white,

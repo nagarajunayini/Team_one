@@ -58,6 +58,12 @@ File file;
     getRules();
     getPostCategories();
   }
+ @override
+  void dispose() {
+      _videoPlayerController.dispose();
+    super.dispose();
+    
+  }
 
   getRules() async {
     QuerySnapshot snapshot = await rulesRef.getDocuments();

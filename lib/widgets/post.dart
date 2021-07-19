@@ -222,10 +222,12 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+
+    print("intit form profile");
     WidgetsBinding.instance.addObserver(this);
     getRules();
     if (fromPage == "postTile") {
-      initPlayer();
+      // initPlayer();
 
       Timer(
           Duration(seconds: 20),
@@ -235,11 +237,13 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
               });
     }
   }
+ 
 
  
 
   @override
   void dispose() {
+    print("calling dispose @@@@@@@@@@@@@@@@@@@@@");
       WidgetsBinding.instance.removeObserver(this);
        if(advancedPlayer!=null){
       advancedPlayer.setReleaseMode(ReleaseMode.STOP);
@@ -251,6 +255,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
       print(isNoComment);
       if (!isDisLiked && !isLiked && !isNoComment) handleNoCommentPost();
     }
+    _videoPlayerController.dispose();
     super.dispose();
     
   }
@@ -1014,8 +1019,7 @@ countDownTimer(){
       mediaUrl,
     );
     futureController = _videoPlayerController.initialize();
-    _videoPlayerController.play();
-    _videoPlayerController.setLooping(true);
+    // _videoPlayerController.setLooping(true);
     _videoPlayerController.setVolume(25.0);
     return   Stack(
         alignment: Alignment.center,
@@ -1024,6 +1028,7 @@ countDownTimer(){
       future: futureController,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+              _videoPlayerController.play();
           return AspectRatio(
             aspectRatio: _videoPlayerController.value.aspectRatio,
             child: VideoPlayer(_videoPlayerController),

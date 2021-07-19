@@ -274,6 +274,9 @@ void initPlayer() {
           Expanded(
             child: buildCard()
           ),
+          // buildDevider(),
+          Text("Trending Users", style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),),
+          buildRecomendedUser()
         ],
       ),
     );
@@ -423,7 +426,71 @@ showPost(context, post) {
             ),
     );
   }
-  
+  buildRecomendedUser(){
+  return  Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.0),
+        height: MediaQuery.of(context).size.height * 0.22,
+        child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: userList.length,
+            itemBuilder: (context, index) {
+              return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    GestureDetector(
+                     onTap: () => showProfile(context, profileId:  userList[index].id),
+                      child:CircleAvatar(
+                      backgroundImage: NetworkImage(
+                         userList[index].photoUrl,
+                      ),
+                      radius: 50.0,
+                    ),
+                    ),
+                    SizedBox(
+                      height: 10.0,
+                      width: 10.0,
+                    ),
+                    Text(
+                    userList[index].username,
+                      style: TextStyle(
+                        fontSize: 22.0,
+                        color: Colors.black,
+                      ),
+                    ),]);  
+              
+              // Container(
+              //   // width: MediaQuery.of(context).size.width * 0.6,
+              //   child: FlatButton(
+              //     shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(18.0),
+              //         side: BorderSide(color: Colors.grey)),
+              //     // color: postValues[index].postValue == selectedPostValue
+              //     //     ? Colors.lightGreen
+              //     //     : Colors.white,
+              //     // textColor: postValues[index].postValue == selectedPostValue
+              //     //     ? Colors.white
+              //     //     : Colors.grey,
+              //     padding: EdgeInsets.all(8.0),
+              //     onPressed: () => {
+              //           // setState(() {
+              //           //   selectedPostValue = postValues[index].postValue;
+              //           //   postValues[index].postValue = selectedPostValue;
+              //           //   selectedPostDeductionValue =
+              //           //       postValues[index].postDeductionValue;
+              //           // })
+              //         },
+              //     child: Text(
+              //       userList[index].username.toString().toUpperCase(),
+              //       style: TextStyle(
+              //         fontSize: 9.0,
+              //       ),
+              //     ),
+              //   ),
+              // );
+            }),
+      );
+  }
 buildCard(){
    final double itemHeight = (MediaQuery.of(context).size.height - kToolbarHeight - 24) / 2;
     final double itemWidth = MediaQuery.of(context).size.width /1.8;
@@ -434,7 +501,7 @@ GridView.count(
   crossAxisSpacing: 5,
   childAspectRatio: (itemWidth / itemHeight),
   mainAxisSpacing: 10,
-  crossAxisCount: 2,
+  crossAxisCount: 3,
   children: postValues.map((value) {
     
    return value.postValue > currentUser.referralPoints?
@@ -475,6 +542,10 @@ decoration: BoxDecoration(
       
 
                      decoration: BoxDecoration(
+                                             border: Border.all(color: Color(0xFF282f61), width: 2.0),
+  borderRadius: BorderRadius.all(Radius.circular(
+                          10.0) 
+                          ),
                           image: DecorationImage(
                             image: AssetImage(
                              'assets/images/card'+(value.index+1).toString()+'.png'

@@ -8,6 +8,7 @@ import 'package:fluttershare/pages/create_group.dart';
 import 'package:fluttershare/pages/groups.dart';
 import 'package:fluttershare/pages/profile.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:fluttershare/pages/wallet_transactions.dart';
 import 'package:share/share.dart';
 
 import 'home.dart';
@@ -111,21 +112,45 @@ class _MenuState extends State<Menu> {
               color: Colors.grey,
             ),
           ),
-          Card(
-              margin: EdgeInsets.only(left: 15.0, right: 15.0),
-              child: ListTile(
-                title: Text(
-                  "Wallet " + " " + walletPoints.toString(),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold),
-                ),
-                leading: Icon(
-                  Icons.book,
-                  color: Colors.red,
-                ),
-              )),
+          // Card(
+          //     margin: EdgeInsets.only(left: 15.0, right: 15.0),
+          //     child: ListTile(
+          //       title: Text(
+          //         "Wallet " + " " + walletPoints.toString(),
+          //         style: TextStyle(
+          //             color: Colors.black,
+          //             fontSize: 15,
+          //             fontWeight: FontWeight.bold),
+          //       ),
+          //       leading: Icon(
+          //         Icons.book,
+          //         color: Colors.red,
+          //       ),
+          //     )),
+              GestureDetector(
+              onTap: () => {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Wallet_Transactions(profileId: currentUser?.id),
+                    ),
+                  )
+              },
+              child: Card(
+                  margin: EdgeInsets.only(left: 15.0, right: 15.0),
+                  child: ListTile(
+                    title: Text(
+                      "Wallet " + " " + walletPoints.toString(),
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    leading: Icon(
+                      Icons.wallet_giftcard,
+                      color: Colors.red,
+                    ),
+                  ))),
           SizedBox(
             height: 10.0,
           ),
@@ -314,7 +339,7 @@ class _MenuState extends State<Menu> {
     );
 
     final Uri deepLink = await parameters.buildUrl();
-    Share.share(deepLink.toString());
+    Share.share("https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/stand_IV_V1.0.0.apk?alt=media&token=576659b4-885f-4674-9e7b-090e5bf9c95b" + " "+ " use "+ currentUserId+ " code to get the referal bonus");
 // _showMyDialog(deepLink);
     print(deepLink);
   }

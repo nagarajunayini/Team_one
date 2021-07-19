@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -25,6 +26,7 @@ final usersRef = Firestore.instance.collection('users');
 final groupsRef = Firestore.instance.collection('groups');
 final postsRef = Firestore.instance.collection('posts');
 final userPostRef = Firestore.instance.collection('userPosts');
+final walletTransactionsRef = Firestore.instance.collection('walletTransactions');
 final userContestRef = Firestore.instance.collection('Contests');
 final commentsRef = Firestore.instance.collection('comments');
 final currentWeekInfluencersRef =
@@ -331,6 +333,13 @@ handleSignIn();
 
   //   currentUser = User.fromDocument(doc);
   // }
+  // 
+  // 
+  getRandomElement<T>(List<T> list) {
+    final random = new Random();
+    var i = random.nextInt(list.length);
+    return list[i];
+}
 
 
     createUserInFirestore1(user) async {
@@ -339,7 +348,29 @@ handleSignIn();
         final FirebaseUser user = await FirebaseAuth.instance.currentUser();
 
     print(user.uid);
+    var listOfImages =[
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image10.jpg?alt=media&token=9bd9ba49-51f7-4198-956b-d507b9374e19",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image1.png?alt=media&token=08bde7d6-0d72-40e5-a6d1-53477b05bda1",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image11.png?alt=media&token=b79a997f-8b21-40ae-8d3f-30d075f6d7fe",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image4.png?alt=media&token=9c21e1ab-217d-481c-ac01-85c165af1df5",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image3.jpg?alt=media&token=d9ea9616-da2c-4d2c-9eb1-565732d1da91",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image20.jpg?alt=media&token=7054ad7b-6a33-4cda-b5b9-ff86607ae8c8",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image2.png?alt=media&token=63b1ed4d-f3f6-454b-adb9-d7d8fb8042d4",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image19.png?alt=media&token=4c5b4226-9c82-4ef5-973e-4d86b6fdce94",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image13.png?alt=media&token=1bf5a642-1ea0-4913-adca-d309ecb9d464",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image12.png?alt=media&token=e06e31b3-0294-46a8-bb06-a3995a4c78dd",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/images17.jpg?alt=media&token=5228189c-b57f-4840-a1b2-8938bef27a49",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/images15.jpg?alt=media&token=423c0c15-9002-4578-87e6-3b0d7c6ac391",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/images14.jpg?alt=media&token=9ea870d7-2b8a-4ace-bc2f-9832199e5ea1",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image9.jpg?alt=media&token=17dca710-c9db-4a14-9d84-d0e4e0800b7b",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image8.png?alt=media&token=a978633c-81b8-494d-ab98-629b3f75cd31",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image6.jpg?alt=media&token=19bc4f62-8f63-4b59-8a15-633342c6ee69",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image7.png?alt=media&token=c0b10b98-acf1-4cd3-bf5d-cfbe70ea064a",
+      "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image5.jpg?alt=media&token=d776d0c2-a530-4d86-9d13-9d5f68478dc7"
 
+
+
+    ];
     String substring = user.phoneNumber.substring(3);
      
     DocumentSnapshot doc = await usersRef.document("1"+substring + substring).get();
@@ -353,7 +384,7 @@ handleSignIn();
       usersRef.document("1"+substring + substring).setData({
         "id": "1"+substring + substring,
         "username": userDetails[0].user_Name,
-        "photoUrl": "https://lh6.googleusercontent.com/-4hfo2WXxTcI/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucnolB3g2dB4_UZkcqGFm-s1alpT5g/s96-c/photo.jpg",
+        "photoUrl": getRandomElement(listOfImages),
         "email":userDetails[0].email_id,
         "displayName": userDetails[0].user_Name,
         "bio": "",

@@ -10,6 +10,7 @@ class User {
   final String credits;
   final num referralPoints;
   List<dynamic> extraInfo = [];
+  List<dynamic> interests =[];
 
   User(
       {this.id,
@@ -20,7 +21,9 @@ class User {
       this.bio,
       this.credits,
       this.referralPoints,
-      this.extraInfo});
+      this.extraInfo,
+      this.interests
+      });
 
   factory User.fromDocument(DocumentSnapshot doc) {
     return User(
@@ -32,6 +35,8 @@ class User {
         bio: doc['bio'],
         credits: doc['credits'],
         referralPoints: doc['referralPoints'],
-        extraInfo: doc['extraInfo']);
+        extraInfo: doc['extraInfo'],
+        interests: doc['interests']
+        );
   }
 }
