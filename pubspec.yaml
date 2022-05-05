@@ -22,7 +22,7 @@ dependencies:
   # flutter_launcher_icons: ^0.7.3   
   cloud_firestore: ^0.9.7+2
   image_picker: ^0.6.0+2
-  video_player: ^0.10.2+1
+  video_player: 
   audioplayers:
   firebase_storage: ^2.1.0+1
   firebase_auth: ^0.8.3
@@ -47,6 +47,8 @@ dependencies:
   flutter_launcher_icons: ^0.7.4
   inview_notifier_list: ^0.0.2
   multi_select_flutter:
+  country_picker:
+  percent_indicator: "^2.1.7+2"
 
 dev_dependencies:
   flutter_test:
@@ -73,9 +75,26 @@ flutter:
     - assets/images/upload.svg
     - assets/images/search.svg
     - assets/images/activity_feed.svg
+    - assets/images/Coin_Icon.svg
+    - assets/images/add_icon.svg
     - assets/images/no_content.svg
     - assets/images/badge.png
     - assets/images/plainwhite.png
+    - assets/images/coinsymbol.png
+    - assets/images/add_button.png
+    - assets/images/diamond.png
+    - assets/images/bronge.png
+    - assets/images/silver.png
+    - assets/images/gold.png
+    - assets/images/platinum.png
+    - assets/images/bronzeTile.png
+    - assets/images/goldtile.png
+    - assets/images/silvertile.png
+    - assets/images/diamondtile.png
+    - assets/images/platinumtile.png
+    - assets/images/backto.png
+    - assets/images/successpopup.png
+    
     - assets/images/phone_sign_in.png
     - assets/images/brongemedal.jpg
     - assets/images/goldmedal.jpg
@@ -93,3 +112,8 @@ flutter:
     - assets/images/card4.png
     - assets/images/card5.png
     - assets/images/card6.png
+    - assets/images/standiv-logo.png
+    - assets/images/giphy.gif
+    - assets/images/Bronze_new.png
+    - assets/images/Silver_new.png
+    - assets/images/Gold_new.png

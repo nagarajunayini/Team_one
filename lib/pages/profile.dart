@@ -278,7 +278,7 @@ class _ProfileState extends State<Profile> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.redAccent, Colors.pinkAccent]
+                colors: [Color(0xFF000000), Color(0xFF000000)]
               )
             ),
             );
@@ -290,7 +290,7 @@ class _ProfileState extends State<Profile> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.redAccent, Colors.black]
+               colors: [Color(0xFF000000), Color(0xFF000000)]
               )
             ),
             child: Container(
@@ -320,33 +320,33 @@ class _ProfileState extends State<Profile> {
                     SizedBox(
                       height: 10.0,
                     ),
-                    Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              buildCountColumn("posts", postCount),
-                              buildCountColumn("followers", followerCount),
-                              buildCountColumn("following", followingCount),
-                            ],
-                          ),
+                    // Row(
+                    //         mainAxisSize: MainAxisSize.max,
+                    //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //         children: <Widget>[
+                    //           buildCountColumn("posts", postCount),
+                    //           buildCountColumn("followers", followerCount),
+                    //           buildCountColumn("following", followingCount),
+                    //         ],
+                    //       ),
 
-                           SizedBox(
-                      height: 10.0,
-                    ),
-                     Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              Expanded(
-                                child: buildProfileButton(),
-                              ),
-                               Expanded(
-                                child:buildButton(
-        text: "Your groups",
-        function: yourGroups,
-      ),
-                              ),
-                            ],
-                          ),
+                    //        SizedBox(
+                    //   height: 10.0,
+                    // ),
+      //                Row(
+      //                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //                       children: <Widget>[
+      //                         Expanded(
+      //                           child: buildProfileButton(),
+      //                         ),
+      //                          Expanded(
+      //                           child:buildButton(
+      //   text: "Your groups",
+      //   function: yourGroups,
+      // ),
+      //                         ),
+      //                       ],
+      //                     ),
                    
                   ],
                 ),
@@ -545,14 +545,14 @@ class _ProfileState extends State<Profile> {
           onPressed: () => setPostOrientation("grid"),
           icon: Icon(Icons.grid_on),
           color: postOrientation == 'grid'
-              ? Theme.of(context).primaryColor
+              ? Colors.red
               : Colors.grey,
         ),
         IconButton(
           onPressed: () => setPostOrientation("list"),
           icon: Icon(Icons.list),
           color: postOrientation == 'list'
-              ? Theme.of(context).primaryColor
+              ? Colors.red
               : Colors.grey,
         ),
       ],
@@ -562,14 +562,25 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: header(context, titleText: "Profile"),
+      backgroundColor: Color(0xFF000000),
+         appBar: AppBar(
+        backgroundColor: Color(0xFF000000),
+        title: Text(
+          "Profile",
+          style: TextStyle(
+            color: Color(0xFFFFFFFF),
+          ),
+        ),
+       
+      ),
+        // header(context, titleText: "Profile"),
         body: Stack(
           children: <Widget>[
             ListView(
               children: <Widget>[
                 buildProfileHeader(),
-                Divider(),
-                buildTogglePostOrientation(),
+                // Divider(),
+                // buildTogglePostOrientation(),
                 Divider(
                   height: 0.0,
                 ),

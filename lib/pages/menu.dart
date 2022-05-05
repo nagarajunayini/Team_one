@@ -4,23 +4,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
+import 'package:fluttershare/models/userLevels.dart';
 import 'package:fluttershare/pages/create_group.dart';
-import 'package:fluttershare/pages/groups.dart';
+import 'package:fluttershare/pages/edit_profile.dart';
+import 'package:fluttershare/pages/mystats.dart';
 import 'package:fluttershare/pages/profile.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluttershare/pages/wallet_transactions.dart';
 import 'package:share/share.dart';
+import 'package:fluttershare/pages/upload.dart';
 
 import 'home.dart';
 
 class Menu extends StatefulWidget {
 
   final User currentUser;
+  List<PostValues> postValues;
 
-  Menu({this.currentUser});
+  Menu({this.currentUser, this.postValues});
 
   @override
-  _MenuState createState() => _MenuState();
+  _MenuState createState() => _MenuState(postValues: this.postValues,);
 
 }
 
@@ -28,8 +32,10 @@ class _MenuState extends State<Menu> {
     final String currentUserId = currentUser?.id;
   bool isLoading = false;
   int walletPoints = 0;
+  
   List<User> userData = [];
-
+  List<PostValues> postValues;
+ _MenuState({this.postValues});
 
   @override
   void initState() {
@@ -60,7 +66,7 @@ class _MenuState extends State<Menu> {
   buildWidget(){
     if(!isLoading){
       return Scaffold(
-
+        backgroundColor: Color(0xFF000000),
         body:Center(
           child:CircularProgressIndicator(
               value: 100,
@@ -71,9 +77,33 @@ class _MenuState extends State<Menu> {
       );
     }else{
  return Scaffold(
-      body: Column(
+    backgroundColor: Color(0xFF000000),
+      body: ListView(
         children: <Widget>[
-          GestureDetector(
+          Row(
+            children: [
+            IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(
+              Icons.menu,
+              size: 30.0,
+              color: Colors.grey,
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(left:100.0),
+            child:Text("Settings",
+          style: TextStyle(color:Color(0xCCFFFFFF), fontSize: 17.0, fontWeight: FontWeight.w600),
+          textAlign:TextAlign.center,
+          ) ,
+          ),
+          
+            ],
+          ),
+          Padding(padding: EdgeInsets.all(10.0)),
+          Center(
+            child:Column(children: [
+              GestureDetector(
             onTap: () => {
                   Navigator.push(
                     context,
@@ -82,35 +112,45 @@ class _MenuState extends State<Menu> {
                     ),
                   )
                 },
-            child: Padding(
-                padding: EdgeInsets.only(top: 30.0),
-                child: ListTile(
-                  title: Text(
-                    currentUser.username,
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 25,
-                        fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Text(
-                    "See your profile",
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                  ),
-                  leading: CircleAvatar(
-                      radius: 30.0,
+                
+               child: CircleAvatar(
+                      radius: 50.0,
                       backgroundColor: Colors.grey,
                       backgroundImage:
                           CachedNetworkImageProvider(currentUser.photoUrl)),
-                )),
+                
+
+              ),
+              Text(
+                    currentUser.username,
+                    style: TextStyle(
+                      color: Color(0xE6FFFFFF),
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800),
+                        textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    "See your profile",
+                    style: TextStyle(
+                      color: Color(0xE6FFFFFF),
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+              
+              
+              
+
+
+            ],)
+            
           ),
+          
           Padding(
-            padding: EdgeInsets.only(left: 15.0, right: 15.0),
-            child: Divider(
-              color: Colors.grey,
-            ),
+            padding: EdgeInsets.only(left: 15.0, right: 15.0, top:15.0),
+            // child: Divider(
+            //   color: Colors.grey,
+            // ),
           ),
           // Card(
           //     margin: EdgeInsets.only(left: 15.0, right: 15.0),
@@ -128,21 +168,24 @@ class _MenuState extends State<Menu> {
           //       ),
           //     )),
               GestureDetector(
+                
               onTap: () => {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => Wallet_Transactions(profileId: currentUser?.id),
+                      builder: (context) => Wallet_Transactions(profileId: currentUser?.id, postValues:postValues),
                     ),
                   )
               },
               child: Card(
+                color: Color(0xFF000000),
                   margin: EdgeInsets.only(left: 15.0, right: 15.0),
                   child: ListTile(
                     title: Text(
-                      "Wallet " + " " + walletPoints.toString(),
+                      "Wallet " + " " + currentUser?.referralPoints.toString(),
                       style: TextStyle(
-                          color: Colors.black,
+                         color: Color(0xE6FFFFFF),
+
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),
@@ -156,25 +199,24 @@ class _MenuState extends State<Menu> {
           ),
           GestureDetector(
               onTap: () => {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CreateGroup(currentUser: currentUser),
-                    ),
-                  )
+                 Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => Mystats(currentUserId: currentUser?.id)))
               },
               child: Card(
+                color: Color(0xFF000000),
                   margin: EdgeInsets.only(left: 15.0, right: 15.0),
                   child: ListTile(
                     title: Text(
-                      "Create group",
+                      "My Stats",
                       style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xE6FFFFFF),
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),
                     leading: Icon(
-                      Icons.people,
+                      Icons.bar_chart,
                       color: Colors.red,
                     ),
                   ))),
@@ -184,19 +226,24 @@ class _MenuState extends State<Menu> {
           GestureDetector(
               onTap: () => {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Groups(currentUser: currentUser),
-                    ),
-                  )
+        context,
+        MaterialPageRoute(
+            builder: (context) => EditProfile(currentUserId: currentUser?.id)))
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => Groups(currentUser: currentUser),
+                //     ),
+                //   )
               },
               child: Card(
+                color: Color(0xFF000000),
                   margin: EdgeInsets.only(left: 15.0, right: 15.0),
                   child: ListTile(
                     title: Text(
-                      "Groups",
+                      "My Profile",
                       style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xE6FFFFFF),
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),
@@ -208,15 +255,44 @@ class _MenuState extends State<Menu> {
           SizedBox(
             height: 10.0,
           ),
+           GestureDetector(
+              onTap: () => {
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => Groups(currentUser: currentUser),
+                //     ),
+                //   )
+              },
+              child: Card(
+                color: Color(0xFF000000),
+                  margin: EdgeInsets.only(left: 15.0, right: 15.0),
+                  child: ListTile(
+                    title: Text(
+                      "Feedback",
+                      style: TextStyle(
+                          color: Color(0xE6FFFFFF),
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    leading: Icon(
+                      Icons.question_answer,
+                      color: Colors.red,
+                    ),
+                  ))),
+          SizedBox(
+            height: 10.0,
+          ),
           GestureDetector(
               onTap: () => generateShortDeepLink(),
               child: Card(
+                color: Color(0xFF000000),
                   margin: EdgeInsets.only(left: 15.0, right: 15.0),
                   child: ListTile(
                     title: Text(
                       "Refer & Earn",
                       style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xE6FFFFFF),
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),
@@ -234,14 +310,26 @@ class _MenuState extends State<Menu> {
             height: 10.0,
           ),
           GestureDetector(
-              onTap: () => {},
+              onTap: () => {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Upload(
+                                  currentUser:  currentUser,
+                                  postValue: 200,
+                                  postDeductionValue:1,
+                                      postLevel:'Brodcast'),
+                    ),
+                  )
+              },
               child: Card(
+                color: Color(0xFF000000),
                   margin: EdgeInsets.only(left: 15.0, right: 15.0),
                   child: ListTile(
                     title: Text(
-                      "Help & Support",
+                      "Brodcast Message",
                       style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xE6FFFFFF),
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),
@@ -256,12 +344,34 @@ class _MenuState extends State<Menu> {
           GestureDetector(
               onTap: () => {},
               child: Card(
+                color: Color(0xFF000000),
                   margin: EdgeInsets.only(left: 15.0, right: 15.0),
                   child: ListTile(
                     title: Text(
-                      "Settings & Privacy",
+                      "Buyout Coins",
                       style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xE6FFFFFF),
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    leading: Icon(
+                      Icons.question_answer,
+                      color: Colors.red,
+                    ),
+                  ))),
+          SizedBox(
+            height: 10.0,
+          ),
+          GestureDetector(
+              onTap: () => {},
+              child: Card(
+                color: Color(0xFF000000),
+                  margin: EdgeInsets.only(left: 15.0, right: 15.0),
+                  child: ListTile(
+                    title: Text(
+                      "Privacy",
+                      style: TextStyle(
+                          color: Color(0xE6FFFFFF),
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),
@@ -276,12 +386,13 @@ class _MenuState extends State<Menu> {
           GestureDetector(
               onTap: () => logout(),
               child: Card(
+                color: Color(0xFF000000),
                   margin: EdgeInsets.only(left: 15.0, right: 15.0),
                   child: ListTile(
                     title: Text(
                       "Logout",
                       style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xE6FFFFFF),
                           fontSize: 15,
                           fontWeight: FontWeight.bold),
                     ),

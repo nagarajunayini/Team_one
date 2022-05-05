@@ -685,17 +685,17 @@ class _PostPopupState extends State<PostPopup> with WidgetsBindingObserver {
   }
 
   debitWalletAmount(postDeductionValue, userWallet) {
-    usersRef.document(currentUserId).setData({
-      "id": currentUser.id,
-      "username": currentUser.username,
-      "photoUrl": currentUser.photoUrl,
-      "email": currentUser.email,
-      "displayName": currentUser.displayName,
-      "bio": currentUser.bio,
-      "timestamp": timestamp,
-      "credits": currentUser.credits,
+    usersRef.document(currentUserId).updateData({
+      // "id": currentUser.id,
+      // "username": currentUser.username,
+      // "photoUrl": currentUser.photoUrl,
+      // "email": currentUser.email,
+      // "displayName": currentUser.displayName,
+      // "bio": currentUser.bio,
+      // "timestamp": timestamp,
+      // "credits": currentUser.credits,
       "referralPoints": userWallet - postDeductionValue,
-      "extraInfo": currentUser.extraInfo,
+      // "extraInfo": currentUser.extraInfo,
     });
   }
 

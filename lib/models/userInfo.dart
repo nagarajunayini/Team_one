@@ -3,39 +3,53 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserInfo {
    String email;
    String userName;
+   String firstName;
+   String lastName;
+   String dateOfBirth;
+   String pincode;
    List<dynamic> extraInfo;
-
    List<dynamic> interests;
-
-  // UserInfo(this.email, this.userName, this.extraInfo);
    String geekName;
-    
-  // Using the getter
-  // method to take input
   String get email_id {
     return email;
   }
-    
-  // Using the setter method
-  // to set the input
+  String get first_name {
+    return firstName;
+  }
+  set first_name (String name) {
+    this.firstName = name;
+  }
+
+   String get last_name {
+    return lastName;
+  }
+  set last_name (String name) {
+    this.lastName = name;
+  }
+   String get dateOf_Birth {
+    return dateOfBirth;
+  }
+  set dateOf_Birth (String name) {
+    this.dateOfBirth = name;
+  }
+   String get pinCode {
+    return pincode;
+  }
+  set pinCode (String name) {
+    this.pincode = name;
+  }
   set email_id (String name) {
     this.email = name;
   }
   String get user_Name {
     return userName;
   }
-    
-  // Using the setter method
-  // to set the input
   set user_Name (String name) {
     this.userName = name;
   }
   List<dynamic> get extra_Info {
     return extraInfo;
   }
-    
-  // Using the setter method
-  // to set the input
   set extra_Info (List<dynamic> list) {
     this.extraInfo = list;
   }
@@ -43,9 +57,7 @@ class UserInfo {
   List<dynamic> get _interests {
     return interests;
   }
-    
-  // Using the setter method
-  // to set the input
+
   set _interests (List<dynamic> list) {
     this.interests = list;
   }

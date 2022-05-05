@@ -1,57 +1,41 @@
 {
   "project_info": {
-    "project_number": "751263764525",
-    "project_id": "stand-iv",
-    "storage_bucket": "stand-iv.appspot.com"
+    "project_number": "1040422523323",
+    "project_id": "stand-iv-5c262",
+    "storage_bucket": "stand-iv-5c262.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:751263764525:android:eeffa27b73cf4ae07a28a4",
+        "mobilesdk_app_id": "1:1040422523323:android:28d6f44e67a874030f749e",
         "android_client_info": {
-          "package_name": "com.teamone.socialnetworkingsite"
+          "package_name": "com.arovhan.standiv"
         }
       },
       "oauth_client": [
         {
-          "client_id": "751263764525-53ekhut20hu2q70pqvdbsq0incasa7rf.apps.googleusercontent.com",
+          "client_id": "1040422523323-2o69astmb8sfkv25u1tmaaheqlt41a9v.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.teamone.socialnetworkingsite",
-            "certificate_hash": "d7fd3e6c353fd185a0a2cb198f6b9150e520c0e4"
-          }
-        },
-        {
-          "client_id": "751263764525-bi04mvi7vtbu4vasdvi9ean0cv3o38g1.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.teamone.socialnetworkingsite",
+            "package_name": "com.arovhan.standiv",
             "certificate_hash": "b2d3ec68b7fd3d173dfac7ba258e379ef54dc711"
           }
         },
         {
-          "client_id": "751263764525-qj0nvi628v5k83ifbsotvoel1ug61jj0.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.teamone.socialnetworkingsite",
-            "certificate_hash": "36696155c1b3fa1ab98936e3c1a24eb11fbf9eaa"
-          }
-        },
-        {
-          "client_id": "751263764525-3bf35vn1n9tivk82upvvd9ucfbn877sr.apps.googleusercontent.com",
+          "client_id": "1040422523323-p12les47p52baaqed0rgckb3314gkp4j.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDVA6Tbqj9huyM4ysRBG2LfVpJ0O2oOLEw"
+          "current_key": "AIzaSyBbJM64-5IxhEnX3qt32U9DHr9MbIRJyf4"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "751263764525-3bf35vn1n9tivk82upvvd9ucfbn877sr.apps.googleusercontent.com",
+              "client_id": "1040422523323-p12les47p52baaqed0rgckb3314gkp4j.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

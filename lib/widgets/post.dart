@@ -42,7 +42,9 @@ class Post extends StatefulWidget {
   final String postType;
   final int postValue;
   final int postDeductionValue;
+  final String postLevel;
   final String fromPage;
+  final String finalPostStatus;
   List<dynamic> postCategory = [];
 
   Post(
@@ -60,6 +62,8 @@ class Post extends StatefulWidget {
       this.postType,
       this.postValue,
       this.postDeductionValue,
+      this.postLevel,
+      this.finalPostStatus,
       this.postCategory,
       this.fromPage});
 
@@ -79,6 +83,8 @@ class Post extends StatefulWidget {
         postType: doc['postType'],
         postValue: doc['postValue'],
         postDeductionValue: doc['postDeductionValue'],
+        postLevel: doc['postLevel'],
+        finalPostStatus:doc['finalPostStatus'],
         postCategory: doc['postCategory']);
   }
 
@@ -152,6 +158,7 @@ class Post extends StatefulWidget {
       comments: this.comments,
       postType: this.postType,
       postValue: this.postValue,
+      postLevel:this.postLevel,
       postDeductionValue: this.postDeductionValue,
       postCategory: this.postCategory,
       fromPage: this.fromPage,
@@ -184,6 +191,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
   final String fromPage;
   List<dynamic> postCategory = [];
   final String postType;
+  final String postLevel;
   List<Rules> rules = [];
   List<TeamOneWallet> teamOneWallet = [];
   List<PoolAmount> poolAmount = [];
@@ -196,7 +204,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
   Duration _position = new Duration();
   AudioPlayer advancedPlayer;
   AudioCache audioCache;
-   CountDownController _controller = CountDownController();
+  CountDownController _controller = CountDownController();
 
   _PostState(
       {this.postId,
@@ -218,6 +226,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
       this.postDeductionValue,
       this.postCategory,
       this.postType,
+      this.postLevel,
       this.fromPage});
   @override
   void initState() {
@@ -237,65 +246,67 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
               });
     }
   }
- 
-
- 
 
   @override
   void dispose() {
     print("calling dispose @@@@@@@@@@@@@@@@@@@@@");
-      WidgetsBinding.instance.removeObserver(this);
-       if(advancedPlayer!=null){
+    WidgetsBinding.instance.removeObserver(this);
+    if (advancedPlayer != null) {
       advancedPlayer.setReleaseMode(ReleaseMode.STOP);
       advancedPlayer.stop();
-       }
+    }
     if (fromPage == "postTile") {
       print(isDisLiked);
       print(isLiked);
       print(isNoComment);
       if (!isDisLiked && !isLiked && !isNoComment) handleNoCommentPost();
     }
-    _videoPlayerController.dispose();
-    super.dispose();
+    if(_videoPlayerController!=null){
+_videoPlayerController.pause();
+// _videoPlayerController?.dispose();
+    }
     
+    super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // TODO: implement didChangeAppLifecycleState
     super.didChangeAppLifecycleState(state);
-    switch(state){
+    switch (state) {
       case AppLifecycleState.paused:
-      print("audio paused");
-       if(advancedPlayer!=null){
-      advancedPlayer.pause();
-       }
-       break;
-       case AppLifecycleState.resumed:
-       print("audio resume");
-        if(advancedPlayer!=null){
-        advancedPlayer.resume();
+        print("audio paused");
+        if (advancedPlayer != null) {
+          advancedPlayer.pause();
         }
-       break;
+        break;
+      case AppLifecycleState.resumed:
+        print("audio resume");
+        if (advancedPlayer != null) {
+          advancedPlayer.resume();
+        }
+        break;
 
       case AppLifecycleState.inactive:
-       if(advancedPlayer!=null){
-         advancedPlayer.stop();
-       }
+        if (advancedPlayer != null) {
+          advancedPlayer.stop();
+        }
         break;
       case AppLifecycleState.detached:
-       if(advancedPlayer!=null){
-        advancedPlayer.stop();
-       }
+        if (advancedPlayer != null) {
+          advancedPlayer.stop();
+        }
         break;
     }
   }
 
   void initPlayer() {
     advancedPlayer = new AudioPlayer();
-    advancedPlayer.setUrl('https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010');
+    advancedPlayer.setUrl(
+        'https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010');
     advancedPlayer.setReleaseMode(ReleaseMode.LOOP);
-    advancedPlayer.play('https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010');
+    advancedPlayer.play(
+        'https://firebasestorage.googleapis.com/v0/b/socialnetworkingsite-d535f.appspot.com/o/background.mp3?alt=media&token=a65a7c8f-56cb-4b32-8257-229a471a9010');
     // audioCache = new AudioCache(fixedPlayer: advancedPlayer);
 
     // advancedPlayer.durationHandler = (d) => setState(() {
@@ -355,6 +366,94 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
       rules.addAll(
           snapshot.documents.map((doc) => Rules.fromDocument(doc)).toList());
     });
+  }
+
+  buildCounter() {
+    return Container(
+        padding: EdgeInsets.only(top: 30.0, bottom: 10.0),
+        child: Center(
+          child: countDownTimer(),
+        ));
+  }
+brodcastWidzet(){
+  return Container(
+     padding: EdgeInsets.only(top: -20.0),
+      child:Text("200k views", textAlign: TextAlign.right, style: TextStyle(color: Colors.white),),
+  );
+}
+  buildPostActions() {
+    return Container(
+      padding: EdgeInsets.only(top: 10.0),
+      child: Column(
+        children: [
+          Container(
+              child: Text("Do you think this action is appropriate?",
+                  style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 18.0))),
+          Container(
+            padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Color(0xFF6BC13B),
+                      radius: 20,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: Icon(Icons.check),
+                        color: Colors.white,
+                        onPressed:handleLikePost,
+                      ),
+                    ),
+                    Container(
+                        padding: EdgeInsets.only(top: 10.0),
+                        child: Text("Agree",
+                            style: TextStyle(color: Color(0xFF6BC13B))))
+                  ],
+                ),
+                Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Color(0xFFDE2F0B),
+                      radius: 20,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: Icon(Icons.close),
+                        color: Colors.white,
+                        onPressed: handleDisLikePost,
+                      ),
+                    ),
+                    Container(
+                        padding: EdgeInsets.only(top: 10.0),
+                        child: Text("Disagree",
+                            style: TextStyle(color: Color(0xFFDE2F0B))))
+                  ],
+                ),
+                Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Color(0xFFE3C503),
+                      radius: 20,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: Icon(Icons.remove),
+                        color: Colors.white,
+                        onPressed:handleNoCommentPost,
+                      ),
+                    ),
+                    Container(
+                        padding: EdgeInsets.only(top: 10.0),
+                        child: Text("Neutral",
+                            style: TextStyle(color: Color(0xFFE3C503))))
+                  ],
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   buildPostHeader() {
@@ -506,6 +605,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
         showHeart = true;
       });
       Timer(Duration(milliseconds: 500), () {
+        Navigator.pop(context);
         setState(() {
           showHeart = false;
         });
@@ -546,6 +646,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
           showHeart = true;
         });
         Timer(Duration(milliseconds: 500), () {
+          Navigator.pop(context);
           setState(() {
             showHeart = false;
           });
@@ -631,6 +732,7 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
           showHeart = true;
         });
         Timer(Duration(milliseconds: 500), () {
+          Navigator.pop(context);
           setState(() {
             showHeart = false;
           });
@@ -682,17 +784,8 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
   }
 
   debitWalletAmount(postDeductionValue, userWallet) {
-    usersRef.document(currentUserId).setData({
-      "id": currentUser.id,
-      "username": currentUser.username,
-      "photoUrl": currentUser.photoUrl,
-      "email": currentUser.email,
-      "displayName": currentUser.displayName,
-      "bio": currentUser.bio,
-      "timestamp": timestamp,
-      "credits": currentUser.credits,
-      "referralPoints": userWallet - postDeductionValue,
-      "extraInfo": currentUser.extraInfo,
+    usersRef.document(currentUserId).updateData({
+               "referralPoints": userWallet - postDeductionValue,
     });
   }
 
@@ -739,8 +832,8 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
       "userId": ownerId,
       "transactionType": "Debit",
       "amount": postDeductionValue,
-      "reason":
-          action == "like" ? getLikeReason(postId) : getDisLikeReason(postId),
+      "reason": 
+      action == "like" ? getLikeReason(postId) : getDisLikeReason(postId),
     });
   }
 
@@ -883,10 +976,15 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Padding(padding: EdgeInsets.only(top: 40.0, left: 20.0)),
-            Expanded(child: Text(description))
+            Expanded(
+              child:Container(
+                margin: EdgeInsets.all(10.0),
+                decoration: BoxDecoration(color:Color(0xC2FFFFFF)),
+                child: Text(description, style: TextStyle(color: Color(0xC2FFFFFF)),))
+              ),
+              
           ],
         ),
-        
       ],
     );
   }
@@ -895,58 +993,36 @@ class _PostState extends State<Post> with WidgetsBindingObserver {
     return Column();
   }
 
-  
-buildDesciptionImage(description, context) {
-
-  return  Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-Container(
-    width: MediaQuery.of(context).size.width,
-    height: MediaQuery.of(context).size.height - 280,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.redAccent, Colors.pinkAccent]),
-    ),
-    child: Center(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-              child: Text(
-            description,
-            maxLines: 3,
-            style: TextStyle(color: Colors.white, fontSize: 25.0),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-          ))
-        ],
+  buildDesciptionImage(description, context) {
+    return Stack( children: <Widget>[
+      Container(
+        child:  Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child:Container(
+                  margin: EdgeInsets.only(left:10.0, right:10.0, top:10.0),
+                   child: Text(
+                     
+                description,
+                maxLines:100,
+                style: TextStyle(color: Color(0xC2FFFFFF), fontSize: 14.0),
+                // overflow: TextOverflow.ellipsis,
+              )
+                )
+                 )
+            ],
+          ),
       ),
-    ),
-  ),
-  !isDisLiked && !isLiked && !isNoComment? Positioned(
-                                  right:0.0,                                    
-                                   top:0.0,
-                                      child: countDownTimer(),
-                                    ):Text(""),
-        ]);
-   
-}
+    ]);
+  }
 
   buildPostImage() {
     return GestureDetector(
-      // onDoubleTap: handleLikePost,
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
           cachedNetworkImage(mediaUrl),
-             !isDisLiked && !isLiked && !isNoComment? Positioned(
-                                  right:0.0,                                    
-                                   top:0.0,
-                                      child: countDownTimer(),
-                                    ):Text(""),
           showHeart
               ? Animator(
                   duration: Duration(milliseconds: 300),
@@ -954,13 +1030,13 @@ Container(
                   curve: Curves.elasticOut,
                   cycles: 0,
                   builder: (anim) => Transform.scale(
-                        scale: anim.value,
-                        child: Icon(
-                          Icons.favorite,
-                          size: 80.0,
-                          color: Colors.red,
-                        ),
-                      ),
+                    scale: anim.value,
+                    child: Icon(
+                      Icons.favorite,
+                      size: 80.0,
+                      color: Colors.red,
+                    ),
+                  ),
                 )
               : Text(""),
         ],
@@ -968,52 +1044,58 @@ Container(
     );
   }
 
+  countDownTimer() {
+    return CircularCountDownTimer(
+      // Countdown duration in Seconds
+      duration: 20,
 
-countDownTimer(){
-  return CircularCountDownTimer(
-        // Countdown duration in Seconds
-        duration: 20,
+      // Controller to control (i.e Pause, Resume, Restart) the Countdown
+      controller: _controller,
 
-        // Controller to control (i.e Pause, Resume, Restart) the Countdown
-        controller: _controller,
+      // Width of the Countdown Widget
+      width: MediaQuery.of(context).size.width / 5,
 
-        // Width of the Countdown Widget
-        width: MediaQuery.of(context).size.width / 5,
+      // Height of the Countdown Widget
+      height: MediaQuery.of(context).size.height / 5,
 
-        // Height of the Countdown Widget
-        height: MediaQuery.of(context).size.height / 5,
+      // Default Color for Countdown Timer
+      color: Color(0xFF00B0FF),
 
-        // Default Color for Countdown Timer
-        color: Colors.grey,
+      // Filling Color for Countdown Timer
+      fillColor: Color(0xFF000000),
 
-        // Filling Color for Countdown Timer
-        fillColor: Colors.red,
+      // Background Color for Countdown Widget
+      backgroundColor: Color(0xFF116380),
 
-        // Background Color for Countdown Widget
-        backgroundColor: Colors.black12,
+      // Border Thickness of the Countdown Circle
+      strokeWidth: 5.0,
 
-        // Border Thickness of the Countdown Circle
-        strokeWidth: 0.0,
+      // Text Style for Countdown Text
+      textStyle: TextStyle(
+          fontSize: 22.0, color: Colors.white, fontWeight: FontWeight.bold),
 
-        // Text Style for Countdown Text
-        textStyle: TextStyle(
-            fontSize: 22.0, color: Colors.black, fontWeight: FontWeight.bold),
+      // true for reverse countdown (max to 0), false for forward countdown (0 to max)
+      isReverse: true,
 
-        // true for reverse countdown (max to 0), false for forward countdown (0 to max)
-        isReverse: true,
+      // true for reverse animation, false for forward animation
 
-        // true for reverse animation, false for forward animation
+      // Optional [bool] to hide the [Text] in this widget.
+      isTimerTextShown: true,
 
-        // Optional [bool] to hide the [Text] in this widget.
-        isTimerTextShown: true,
+      // Function which will execute when the Countdown Ends
+      onComplete: () {
+        // Here, do whatever you want
+        if(_videoPlayerController!=null){
+          _videoPlayerController.pause();
+        // _videoPlayerController?.dispose();
+          
+        }
+        Navigator.pop(context);
+        
+      },
+    );
+  }
 
-        // Function which will execute when the Countdown Ends
-        onComplete: () {
-          // Here, do whatever you want
-          print('Countdown Ended');
-        },
-      );
-}
   buildPostVideo() {
     _videoPlayerController = VideoPlayerController.network(
       mediaUrl,
@@ -1021,32 +1103,28 @@ countDownTimer(){
     futureController = _videoPlayerController.initialize();
     // _videoPlayerController.setLooping(true);
     _videoPlayerController.setVolume(25.0);
-    return   Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
+    return Stack(alignment: Alignment.center, children: <Widget>[
       FutureBuilder(
-      future: futureController,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-              _videoPlayerController.play();
-          return AspectRatio(
-            aspectRatio: _videoPlayerController.value.aspectRatio,
-            child: VideoPlayer(_videoPlayerController),
-          );
-        } else {
-          return Center(child: linearProgress());
-        }
-      },
-    ),
-   !isDisLiked && !isLiked && !isNoComment? Positioned(
-                                  right:0.0,                                    
-                                   top:0.0,
-                                      child: countDownTimer(),
-                                    ):Text(""),
-          
-        ]);
-    
-    
+        future: futureController,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            _videoPlayerController.play();
+            return AspectRatio(
+              aspectRatio: _videoPlayerController.value.aspectRatio,
+              child: VideoPlayer(_videoPlayerController),
+            );
+          } else {
+            
+            return Center(child: circularProgress());
+          }
+        },
+      ),
+      //  !isDisLiked && !isLiked && !isNoComment? Positioned(
+      //                                 right:0.0,
+      //                                  top:0.0,
+      //                                     child: countDownTimer(),
+      //                                   ):Text(""),
+    ]);
   }
 
   getvideo(mediaUrl) {
@@ -1120,11 +1198,11 @@ countDownTimer(){
             Padding(padding: EdgeInsets.only(top: 40.0, left: 10.0)),
             GestureDetector(
               onTap: () => showComments(
-                    context,
-                    postId: postId,
-                    ownerId: ownerId,
-                    mediaUrl: mediaUrl,
-                  ),
+                context,
+                postId: postId,
+                ownerId: ownerId,
+                mediaUrl: mediaUrl,
+              ),
               child: Icon(
                 Icons.chat,
                 size: 28.0,
@@ -1189,20 +1267,40 @@ countDownTimer(){
     isNoComment = (noComments[currentUserId] == true);
     if (fromPage == "postTile") {
       return Scaffold(
-          appBar: header(context, titleText: "Post Details"),
+          backgroundColor: Color(0xFF000000),
+          // appBar: header(context, titleText: "Post Details"),
           body: ListView(
-            children: <Widget>[
-              buildPostHeader(),
-              postType == ""
-                  ? buildDesciptionImage(description, context)
-                  : description != "" ? buildDescription() : emptyWidget(),
-              postType == ""
-                  ? emptyWidget()
-                  : postType == "image" ? buildPostImage() : buildPostVideo(),
-              buildPostFooter(),
-              // buildDevider()
+            children: [
+              buildCounter(),
+             postType == "" ?Container(
+                margin: EdgeInsets.only(left:20.0,right:20.0),
+                height: 400.0,
+                decoration: BoxDecoration(
+    	color: Color(0xFF4E4E4E),
+      border: Border.all(color:Color(0xFF4E4E4E)),
+    	borderRadius: BorderRadius.all(
+    		Radius.circular(5)
+    	)
+    ),
+                child:buildDesciptionImage(description, context)
+              ): Container(
+                margin: EdgeInsets.only(left:20.0,right:20.0),
+                height: 350.0,
+                decoration: BoxDecoration(
+    	// color: Color(0xFF4E4E4E),
+      border: Border.all(color:Color(0xFF4E4E4E)),
+    	borderRadius: BorderRadius.all(
+    		Radius.circular(5)
+    	)
+    ),
+                child:postType == "image" ? buildPostImage()  :buildPostVideo(),
+            
+              ),
+              postType!=""&& description !=""? buildDescription():emptyWidget(),
+              postLevel!="Brodcast"?buildPostActions():brodcastWidzet()
             ],
-          ));
+          ), 
+          );
     } else {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -1210,18 +1308,21 @@ countDownTimer(){
           buildPostHeader(),
           postType == ""
               ? buildDesciptionImage(description, context)
-              : description != "" ? buildDescription() : emptyWidget(),
+              : description != ""
+                  ? buildDescription()
+                  : emptyWidget(),
           postType == ""
               ? emptyWidget()
-              : postType == "image" ? buildPostImage() : buildPostVideo(),
-          buildPostFooter(),
+              : postType == "image"
+                  ? buildPostImage()
+                  : buildPostVideo(),
+          postLevel!="Brodcast"? buildPostFooter():emptyWidget(),
           buildDevider()
         ],
       );
     }
   }
 }
-
 
 showComments(BuildContext context,
     {String postId, String ownerId, String mediaUrl}) {

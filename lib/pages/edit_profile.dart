@@ -20,6 +20,7 @@ class _EditProfileState extends State<EditProfile> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   TextEditingController displayNameController = TextEditingController();
     TextEditingController emailController = TextEditingController();
+  TextEditingController nickName = TextEditingController();
 
   
   TextEditingController bioController = TextEditingController();
@@ -29,9 +30,30 @@ class _EditProfileState extends State<EditProfile> {
   User user;
   bool _displayNameValid = true;
   bool _bioValid = true;
-  var gender = ["Male", "Female", "Others"];
-  var religion = ["Hindu", "Muslim", "Christian", "Others"];
-  var interests = ["All","Politcs", "Sports", "Technology", "Wether","Environment","Mrdicine","Journalism","Films","Arts"];
+ var gender = ["Male", "Female", "Others"];
+  var knowledge = [
+    "Math",
+    "Covid-19",
+    "Science",
+    "Biology",
+    "History",
+    "Physics"
+  ];
+  var hustle = [
+    "TokTok",
+    "Clubhouse",
+    "Stocks",
+    "Instagram",
+    "Entrepreneurship"
+  ];
+  var worldAffairs = [
+    "Current Events",
+    "Climate",
+    "Us Politics",
+    "Geo Politcs"
+  ];
+  var sports = ["Soccer", "Tennis", "Cricket", "Basketball", "Cycling"];
+
   var city = [
     "Hyderabad",
     "Bangolore",
@@ -59,10 +81,10 @@ class _EditProfileState extends State<EditProfile> {
     });
     DocumentSnapshot doc = await usersRef.document(widget.currentUserId).get();
     user = User.fromDocument(doc);
-    displayNameController.text = user.username;
+    nickName.text = user.username;
     emailController.text= user.email;
     if(user.interests !=null && user.interests.length !=0){
-      this._selectedInterests = user.interests;
+      this._selectedInterests.addAll(user.interests);
     }else{
       this._selectedInterests =[];
     }
@@ -88,8 +110,8 @@ class _EditProfileState extends State<EditProfile> {
 
   updateProfileData() {
     setState(() {
-      displayNameController.text.trim().length < 3 ||
-              displayNameController.text.isEmpty
+      nickName.text.trim().length < 3 ||
+              nickName.text.isEmpty
           ? _displayNameValid = false
           : _displayNameValid = true;
       bioController.text.trim().length > 100
@@ -102,14 +124,12 @@ class _EditProfileState extends State<EditProfile> {
     if (_displayNameValid && _bioValid ) {
       if(validateEmail(emailController.text) == null){
         usersRef.document(widget.currentUserId).updateData({
-        "displayName": displayNameController.text,
+        "displayName": nickName.text,
         "email":emailController.text,
         "interests": this._selectedInterests,
         "extraInfo": [
           this.selectedCity,
-          this.selectedGender,
-          this.selectedReligion,
-          
+          this.selectedGender,          
         ],
       });
       SnackBar snackbar = SnackBar(content: Text("Profile updated!"));
@@ -141,13 +161,13 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF000000),
       key: _scaffoldKey,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         title: Text(
           "Edit Profile",
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
         actions: <Widget>[
@@ -179,154 +199,376 @@ class _EditProfileState extends State<EditProfile> {
                               CachedNetworkImageProvider(user.photoUrl),
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: TextFormField(
-                          controller: displayNameController,
-                          decoration: InputDecoration(labelText: "userName"),
-                        ),
+                      Container(
+                            padding: EdgeInsets.only(top: 50.0, left: 20.0),
+                            width: 350.0,
+                            child: TextFormField(
+                              controller: nickName,
+                              style: TextStyle(
+                                  color: Color(0xB3FFFFFF), fontSize: 18.0),
+                              decoration: const InputDecoration(
+                                enabledBorder: const UnderlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 0.0),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 0.0),
+                                ),
+                                labelText: 'Nick Name',
+                                labelStyle: TextStyle(
+                                    color: Color(0xB3FFFFFF), fontSize: 18.0),
+                              ),
+                            )),
+                            Container(
+                              padding: EdgeInsets.only(
+                                  top: 30.0, left: 20.0, bottom: 30.0),
+                              width: 370.0,
+                              child: Text(
+                                "What is your gender?",
+                                style: TextStyle(
+                                    color: Color(0xFFFFFFFF), fontSize: 25.0),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                            Wrap(
+                              children: gender
+                                  .map((item) => Container(
+                                      padding: EdgeInsets.only(right: 10.0),
+                                      child: FlatButton(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
+                                              side: BorderSide(
+                                                  color: selectedGender == item
+                                                      ? Colors.red
+                                                      : Colors.white)),
+                                          color: selectedGender == item
+                                              ? Colors.red
+                                              : Colors.black,
+                                          textColor: selectedGender == item
+                                              ? Colors.white
+                                              : Colors.white,
+                                          onPressed: () => {
+                                                setState(() {
+                                                  selectedGender = item;
+                                                })
+                                              },
+                                          child: Text(item,
+                                              style: TextStyle(
+                                                fontSize: 9.0,
+                                              )))))
+                                  .toList()
+                                  .cast<Widget>(),
+                            ),
+                             Container(
+                                    padding:
+                                        EdgeInsets.only(top: 30.0, left: 20.0),
+                                    width: 350.0,
+                                    child: TextFormField(
+                                      controller: emailController,
+                                      style: TextStyle(
+                                          color: Color(0xB3FFFFFF),
+                                          fontSize: 18.0),
+                                      decoration: const InputDecoration(
+                                        enabledBorder:
+                                            const UnderlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.grey, width: 0.0),
+                                        ),
+                                        focusedBorder:
+                                            const UnderlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.grey, width: 0.0),
+                                        ),
+                                        labelText: 'Email',
+                                        labelStyle: TextStyle(
+                                            color: Color(0xB3FFFFFF),
+                                            fontSize: 18.0),
+                                      ),
+                                    )),
+                                    Container(
+                                              padding: EdgeInsets.only(
+                                                  top: 30.0,
+                                                  bottom: 10.0,
+                                                  left: 30),
+                                              width: 370.0,
+                                              child: Text(
+                                                "Knowledge",
+                                                style: TextStyle(
+                                                    color: Color(0xFFFFFFFF),
+                                                    fontSize: 25.0),
+                                                textAlign: TextAlign.left,
+                                              ),
+                                            ),
+                                            Wrap(
+                                              children: knowledge
+                                                  .map((item) => Container(
+                                                      padding: EdgeInsets.only(
+                                                          right: 10.0),
+                                                      child: FlatButton(
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                      10.0),
+                                                              side: BorderSide(
+                                                                  color: _selectedInterests.indexOf(item) !=
+                                                                          -1
+                                                                      ? Colors
+                                                                          .red
+                                                                      : Colors
+                                                                          .white)),
+                                                          color: _selectedInterests
+                                                                      .indexOf(
+                                                                          item) !=
+                                                                  -1
+                                                              ? Colors.red
+                                                              : Colors.black,
+                                                          textColor: _selectedInterests
+                                                                      .indexOf(item) !=
+                                                                  -1
+                                                              ? Colors.white
+                                                              : Colors.white,
+                                                          onPressed: () => {
+                                                                setState(() {
+                                                                  if (_selectedInterests
+                                                                          .indexOf(
+                                                                              item) !=
+                                                                      -1) {
+                                                                    _selectedInterests
+                                                                        .remove(
+                                                                            item);
+                                                                  } else {
+                                                                    _selectedInterests
+                                                                        .add(
+                                                                            item);
+                                                                  }
+                                                                })
+                                                              },
+                                                          child: Text(item,
+                                                              style: TextStyle(
+                                                                fontSize: 9.0,
+                                                              )))))
+                                                  .toList()
+                                                  .cast<Widget>(),
+                                            ),
+                                            Container(
+                                              padding: EdgeInsets.only(
+                                                  top: 30.0,
+                                                  bottom: 10.0,
+                                                  left: 30),
+                                              width: 370.0,
+                                              child: Text(
+                                                "Hustle",
+                                                style: TextStyle(
+                                                    color: Color(0xFFFFFFFF),
+                                                    fontSize: 25.0),
+                                                textAlign: TextAlign.left,
+                                              ),
+                                            ),
+                                            Wrap(
+                                              children: hustle
+                                                  .map((item) => Container(
+                                                      padding: EdgeInsets.only(
+                                                          right: 10.0),
+                                                      child: FlatButton(
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                      10.0),
+                                                              side: BorderSide(
+                                                                  color: _selectedInterests.indexOf(item) !=
+                                                                          -1
+                                                                      ? Colors
+                                                                          .red
+                                                                      : Colors
+                                                                          .white)),
+                                                          color: _selectedInterests
+                                                                      .indexOf(
+                                                                          item) !=
+                                                                  -1
+                                                              ? Colors.red
+                                                              : Colors.black,
+                                                          textColor: _selectedInterests
+                                                                      .indexOf(item) !=
+                                                                  -1
+                                                              ? Colors.white
+                                                              : Colors.white,
+                                                          onPressed: () => {
+                                                                setState(() {
+                                                                  if (_selectedInterests
+                                                                          .indexOf(
+                                                                              item) !=
+                                                                      -1) {
+                                                                    _selectedInterests
+                                                                        .remove(
+                                                                            item);
+                                                                  } else {
+                                                                    _selectedInterests
+                                                                        .add(
+                                                                            item);
+                                                                  }
+                                                                })
+                                                              },
+                                                          child: Text(item,
+                                                              style: TextStyle(
+                                                                fontSize: 9.0,
+                                                              )))))
+                                                  .toList()
+                                                  .cast<Widget>(),
+                                            ),
+                                            Container(
+                                              padding: EdgeInsets.only(
+                                                  top: 30.0,
+                                                  bottom: 10.0,
+                                                  left: 30),
+                                              width: 370.0,
+                                              child: Text(
+                                                "World Affairs",
+                                                style: TextStyle(
+                                                    color: Color(0xFFFFFFFF),
+                                                    fontSize: 25.0),
+                                                textAlign: TextAlign.left,
+                                              ),
+                                            ),
+                                            Wrap(
+                                              children: worldAffairs
+                                                  .map((item) => Container(
+                                                      padding: EdgeInsets.only(
+                                                          right: 10.0),
+                                                      child: FlatButton(
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                      10.0),
+                                                              side: BorderSide(
+                                                                  color: _selectedInterests.indexOf(item) !=
+                                                                          -1
+                                                                      ? Colors
+                                                                          .red
+                                                                      : Colors
+                                                                          .white)),
+                                                          color: _selectedInterests
+                                                                      .indexOf(
+                                                                          item) !=
+                                                                  -1
+                                                              ? Colors.red
+                                                              : Colors.black,
+                                                          textColor: _selectedInterests
+                                                                      .indexOf(item) !=
+                                                                  -1
+                                                              ? Colors.white
+                                                              : Colors.white,
+                                                          onPressed: () => {
+                                                                setState(() {
+                                                                  if (_selectedInterests
+                                                                          .indexOf(
+                                                                              item) !=
+                                                                      -1) {
+                                                                    _selectedInterests
+                                                                        .remove(
+                                                                            item);
+                                                                  } else {
+                                                                    _selectedInterests
+                                                                        .add(
+                                                                            item);
+                                                                  }
+                                                                })
+                                                              },
+                                                          child: Text(item,
+                                                              style: TextStyle(
+                                                                fontSize: 9.0,
+                                                              )))))
+                                                  .toList()
+                                                  .cast<Widget>(),
+                                            ),
+                                            Container(
+                                              padding: EdgeInsets.only(
+                                                  top: 30.0,
+                                                  bottom: 10.0,
+                                                  left: 30),
+                                              width: 370.0,
+                                              child: Text(
+                                                "Sports",
+                                                style: TextStyle(
+                                                    color: Color(0xFFFFFFFF),
+                                                    fontSize: 25.0),
+                                                textAlign: TextAlign.left,
+                                              ),
+                                            ),
+                                            Wrap(
+                                              children: sports
+                                                  .map((item) => Container(
+                                                      padding: EdgeInsets.only(
+                                                          right: 10.0),
+                                                      child: FlatButton(
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                      10.0),
+                                                              side: BorderSide(
+                                                                  color: _selectedInterests.indexOf(item) !=
+                                                                          -1
+                                                                      ? Colors
+                                                                          .red
+                                                                      : Colors
+                                                                          .white)),
+                                                          color: _selectedInterests
+                                                                      .indexOf(
+                                                                          item) !=
+                                                                  -1
+                                                              ? Colors.red
+                                                              : Colors.black,
+                                                          textColor: _selectedInterests
+                                                                      .indexOf(item) !=
+                                                                  -1
+                                                              ? Colors.white
+                                                              : Colors.white,
+                                                          onPressed: () => {
+                                                                setState(() {
+                                                                  if (_selectedInterests
+                                                                          .indexOf(
+                                                                              item) !=
+                                                                      -1) {
+                                                                    _selectedInterests
+                                                                        .remove(
+                                                                            item);
+                                                                  } else {
+                                                                    _selectedInterests
+                                                                        .add(
+                                                                            item);
+                                                                  }
+                                                                })
+                                                              },
+                                                          child: Text(item,
+                                                              style: TextStyle(
+                                                                fontSize: 9.0,
+                                                              )))))
+                                                  .toList()
+                                                  .cast<Widget>(),
+                                            ),
+                                             Padding(padding: EdgeInsets.all(40)),
+                GestureDetector(
+                  onTap: updateProfileData,
+                  child: Container(
+                    height: 45.0,
+                    width: 112.67,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(23.0),
+                        border:
+                            Border.all(color: Color(0xFFB3B3B3), width: 3.0)),
+                    child: Center(
+                      child: Text(
+                        "Update",
+                        style: TextStyle(
+                            color: Color(0xFFFFFFFF),
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold),
                       ),
-                      Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: TextFormField(
-                    validator: validateEmail,
-                    controller: emailController,
-                    decoration: InputDecoration(labelText: "email"),
+                    ),
                   ),
                 ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Padding(
-                              padding: EdgeInsets.only(top: 0.0, left: 0.0)),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 10.0,
-                            ),
-                            child: Center(
-                              child: Text(
-                                "Gender:",
-                                style: TextStyle(fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                              padding: EdgeInsets.only(
-                                  top: 60.0, left: 150.0, right: 10.0)),
-                          DropdownButton<String>(
-                            items: gender.map((String dropdownItem) {
-                              return DropdownMenuItem<String>(
-                                  value: dropdownItem,
-                                  child: Text(dropdownItem));
-                            }).toList(),
-                            onChanged: (String selectedValue) {
-                              setState(() {
-                                this.selectedGender = selectedValue;
-                              });
-                            },
-                            value: this.selectedGender,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Padding(
-                              padding: EdgeInsets.only(top: 0.0, left: 0.0)),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 10.0,
-                            ),
-                            child: Center(
-                              child: Text(
-                                "City:",
-                                style: TextStyle(fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                              padding: EdgeInsets.only(
-                                  top: 60.0, left: 150.0, right: 10.0)),
-                          DropdownButton<String>(
-                            items: city.map((String dropdownItem) {
-                              return DropdownMenuItem<String>(
-                                  value: dropdownItem,
-                                  child: Text(dropdownItem));
-                            }).toList(),
-                            onChanged: (String selectedValue) {
-                              setState(() {
-                                this.selectedCity = selectedValue;
-                              });
-                            },
-                            value: this.selectedCity,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Padding(
-                              padding: EdgeInsets.only(
-                                  top: 0.0, left: 0.0, bottom: 20.0)),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 10.0,
-                            ),
-                            child: Center(
-                              child: Text(
-                                "Religion:",
-                                style: TextStyle(fontSize: 20.0),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                              padding: EdgeInsets.only(
-                                  top: 60.0, left: 150.0, right: 10.0)),
-                          DropdownButton<String>(
-                            items: religion.map((String dropdownItem) {
-                              return DropdownMenuItem<String>(
-                                  value: dropdownItem,
-                                  child: Text(dropdownItem));
-                            }).toList(),
-                            onChanged: (String selectedValue) {
-                              setState(() {
-                                this.selectedReligion = selectedValue;
-                              });
-                            },
-                            value: this.selectedReligion,
-                          ),
-                        ],
-                      ),
-                      MultiSelectChipField(
-                        decoration:BoxDecoration(),
-                      headerColor:Colors.white,
-                        title: Text("Interests"),
-  items: interests.map((e) => MultiSelectItem(e, e)).toList(),
-  icon: Icon(Icons.check),
-  onTap: (values) {
-    this._selectedInterests = values;
-  },
-),
-                      GestureDetector(
-                        onTap: updateProfileData,
-                        child: Container(
-                          height: 50.0,
-                          width: 350.0,
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            borderRadius: BorderRadius.circular(7.0),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Update",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
+                Padding(padding: EdgeInsets.all(40)),
                     ],
                   ),
                 )

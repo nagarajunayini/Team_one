@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/create_account.dart';
+import 'package:fluttershare/pages/dashboard.dart';
 import 'package:fluttershare/pages/landingPage.dart';
 import 'package:fluttershare/pages/playHistory.dart';
 import 'package:fluttershare/pages/profile.dart';
@@ -26,7 +27,8 @@ final usersRef = Firestore.instance.collection('users');
 final groupsRef = Firestore.instance.collection('groups');
 final postsRef = Firestore.instance.collection('posts');
 final userPostRef = Firestore.instance.collection('userPosts');
-final walletTransactionsRef = Firestore.instance.collection('walletTransactions');
+// final walletTransactionsRef =
+//     Firestore.instance.collection('walletTransactions');
 final userContestRef = Firestore.instance.collection('Contests');
 final commentsRef = Firestore.instance.collection('comments');
 final currentWeekInfluencersRef =
@@ -62,21 +64,19 @@ class _HomeState extends State<Home> {
   String tempPhone;
   String smsCode;
   String verificationId;
-
+  String showOtpScreen = "No";
   @override
-  void initState()  { 
+  void initState() {
     super.initState();
     pageController = PageController();
 
     // userSignIn check
-handleSignIn();
-
-      
+    handleSignIn();
 
     // Detects when user signed in
-    
+
     // code for google login
-    // 
+    //
     // googleSignIn.onCurrentUserChanged.listen((account) {
     //   handleSignIn(account);
     // }, onError: (err) {
@@ -96,7 +96,8 @@ handleSignIn();
     //   print('Error signing in: $err');
     // });
   }
-  Future<bool> smsCodeDialog(BuildContext context) async  {
+
+  Future<bool> smsCodeDialog(BuildContext context) async {
     return showDialog(
         context: context,
         barrierDismissible: false,
@@ -116,13 +117,11 @@ handleSignIn();
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
                       Navigator.of(context).pop();
-                       createUserInFirestore1(user);
-      setState(() {
-        isAuth = "true";
-      });
-      configurePushNotifications1(user);
-                      // Navigator.push(
-                      // context, MaterialPageRoute(builder: (context) => CreateAccount()));
+                      createUserInFirestore1(user);
+                      setState(() {
+                        isAuth = "true";
+                      });
+                      configurePushNotifications1(user);
                     } else {
                       Navigator.of(context).pop();
                       signIn();
@@ -136,15 +135,23 @@ handleSignIn();
   }
 
   Future<void> verifyPhone() async {
+    //  List<dynamic> userDetails = await Navigator.push(
+    //       context, MaterialPageRoute(builder: (context) => CreateAccount()));
+    // setState(() {
+    //   showOtpScreen = "Yes";
+    // });
     final PhoneCodeAutoRetrievalTimeout autoRetrieve = (String verId) {
       this.verificationId = verId;
     };
 
     final PhoneCodeSent smsCodeSent = (String verId, [int forceCodeResend]) {
       this.verificationId = verId;
-      smsCodeDialog(context).then((value) {
-        print('Signed in');
+      setState(() {
+        showOtpScreen = "Yes";
       });
+      // smsCodeDialog(context).then((value) {
+      //   print('Signed in');
+      // });
     };
 
     final PhoneVerificationCompleted verifiedSuccess = (FirebaseUser user) {
@@ -169,28 +176,29 @@ handleSignIn();
         verificationFailed: veriFailed);
   }
 
-  signIn() async { 
+  signIn() async {
     final AuthCredential credential = PhoneAuthProvider.getCredential(
       verificationId: verificationId,
       smsCode: smsCode,
     );
-    final FirebaseUser user = await FirebaseAuth.instance.signInWithCredential(credential);
+    final FirebaseUser user =
+        await FirebaseAuth.instance.signInWithCredential(credential);
     final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
     print(user);
-    if(user!=null){
-       
-                             createUserInFirestore1(user);
-                             configurePushNotifications1(user);
-                             setState(() {
-        isAuth = "true";
-      });
-
+    if (user != null) {
+      createUserInFirestore1(user);
+      configurePushNotifications1(user);
+      if (mounted) {
+  setState(() {
+    isAuth = "true";
+  });
+}
+      
     }
   }
 
-
 // code for google signIn
-// 
+//
   // handleSignIn(GoogleSignInAccount account) async {
   //   if (account != null) {
   //     await createUserInFirestore();
@@ -204,10 +212,10 @@ handleSignIn();
   //     });
   //   }
   // }
-  // 
-  // 
+  //
+  //
   handleSignIn() async {
-        final FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    final FirebaseUser user = await FirebaseAuth.instance.currentUser();
 
     if (user != null) {
       await createUserInFirestore1(user);
@@ -222,8 +230,7 @@ handleSignIn();
     }
   }
 
-
- //  code for google signIn
+  //  code for google signIn
   // configurePushNotifications() {
   //   final GoogleSignInAccount user = googleSignIn.currentUser;
   //   if (Platform.isIOS) getiOSPermission();
@@ -257,14 +264,14 @@ handleSignIn();
   // }
   configurePushNotifications1(user) {
     // final GoogleSignInAccount user = googleSignIn.currentUser;
-        String substring1 = user.phoneNumber.substring(3);
+    String substring1 = user.phoneNumber.substring(3);
 
     if (Platform.isIOS) getiOSPermission();
 
     _firebaseMessaging.getToken().then((token) {
       // print("Firebase Messaging Token: $token\n");
       usersRef
-          .document("1"+substring1 + substring1)
+          .document("1" + substring1 + substring1)
           .updateData({"androidNotificationToken": token});
     });
 
@@ -275,7 +282,7 @@ handleSignIn();
         // print("on message: $message\n");
         final String recipientId = message['data']['recipient'];
         final String body = message['notification']['body'];
-        if (recipientId == "1"+substring1 + substring1) {
+        if (recipientId == "1" + substring1 + substring1) {
           // print("Notification shown!");
           SnackBar snackbar = SnackBar(
               content: Text(
@@ -333,22 +340,21 @@ handleSignIn();
 
   //   currentUser = User.fromDocument(doc);
   // }
-  // 
-  // 
+  //
+  //
   getRandomElement<T>(List<T> list) {
     final random = new Random();
     var i = random.nextInt(list.length);
     return list[i];
-}
+  }
 
-
-    createUserInFirestore1(user) async {
+  createUserInFirestore1(user) async {
     // 1) check if user exists in users collection in database (according to their id)
     // final GoogleSignInAccount user = googleSignIn.currentUser;
-        final FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    final FirebaseUser user = await FirebaseAuth.instance.currentUser();
 
     print(user.uid);
-    var listOfImages =[
+    var listOfImages = [
       "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image10.jpg?alt=media&token=9bd9ba49-51f7-4198-956b-d507b9374e19",
       "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image1.png?alt=media&token=08bde7d6-0d72-40e5-a6d1-53477b05bda1",
       "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image11.png?alt=media&token=b79a997f-8b21-40ae-8d3f-30d075f6d7fe",
@@ -367,13 +373,11 @@ handleSignIn();
       "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image6.jpg?alt=media&token=19bc4f62-8f63-4b59-8a15-633342c6ee69",
       "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image7.png?alt=media&token=c0b10b98-acf1-4cd3-bf5d-cfbe70ea064a",
       "https://firebasestorage.googleapis.com/v0/b/stand-iv.appspot.com/o/image5.jpg?alt=media&token=d776d0c2-a530-4d86-9d13-9d5f68478dc7"
-
-
-
     ];
     String substring = user.phoneNumber.substring(3);
-     
-    DocumentSnapshot doc = await usersRef.document("1"+substring + substring).get();
+
+    DocumentSnapshot doc =
+        await usersRef.document("1" + substring + substring).get();
 
     if (!doc.exists) {
       // 2) if the user doesn't exist, then we want to take them to the create account page
@@ -381,27 +385,32 @@ handleSignIn();
           context, MaterialPageRoute(builder: (context) => CreateAccount()));
       print(userDetails);
       // 3) get username from create account, use it to make new user document in users collection
-      usersRef.document("1"+substring + substring).setData({
-        "id": "1"+substring + substring,
+      usersRef.document("1" + substring + substring).setData({
+        "id": "1" + substring + substring,
+        "firstName": userDetails[0].first_name,
+        "lastName": userDetails[0].last_name,
+        "dateOfBirth": userDetails[0].dateOf_Birth,
         "username": userDetails[0].user_Name,
         "photoUrl": getRandomElement(listOfImages),
-        "email":userDetails[0].email_id,
+        "email": userDetails[0].email_id,
         "displayName": userDetails[0].user_Name,
         "bio": "",
-        "phoneNumber":this.phoneNo,
+        "phoneNumber": this.phoneNo,
         "timestamp": timestamp,
         "credits": "0",
+        "pinCode":userDetails[0].pinCode,
         "referralPoints": 500,
         "extraInfo": userDetails[0].extra_Info,
+        "interests": userDetails[0].interests
       });
       // make new user their own follower (to include their posts in their timeline)
       await followersRef
-          .document("1"+substring + substring)
+          .document("1" + substring + substring)
           .collection('userFollowers')
-          .document("1"+substring + substring)
+          .document("1" + substring + substring)
           .setData({});
 
-      doc = await usersRef.document("1"+substring + substring).get();
+      doc = await usersRef.document("1" + substring + substring).get();
     }
 
     currentUser = User.fromDocument(doc);
@@ -421,9 +430,31 @@ handleSignIn();
     googleSignIn.signOut();
   }
 
+  next() async {
+    FirebaseAuth.instance.currentUser().then((user) {
+                    if (user != null) {
+                      // Navigator.of(context).pop();
+                      createUserInFirestore1(user);
+                      setState(() {
+                        isAuth = "true";
+                      });
+                      configurePushNotifications1(user);
+                    } else {
+                      // Navigator.of(context).pop();
+                      signIn();
+                    }
+                  });
+  }
+
   onPageChanged(int pageIndex) {
     setState(() {
       this.pageIndex = pageIndex;
+    });
+  }
+
+  back() {
+    setState(() {
+      showOtpScreen = "No";
     });
   }
 
@@ -437,296 +468,302 @@ handleSignIn();
 
   Scaffold buildAuthScreen() {
     return Scaffold(
+      backgroundColor: Colors.black,
       key: _scaffoldKey,
       body: PageView(
         children: <Widget>[
-          LandingPage(currentUser: currentUser),
+          Dashboard(currentUser: currentUser),
+          // LandingPage(currentUser: currentUser),
           // Timeline(currentUser: currentUser),
           // ContestTimeline(currentUser: currentUser),
-          History(profileId: currentUser?.id),
-          Upload(currentUser: currentUser),
+          // History(profileId: currentUser?.id),
+          // Upload(currentUser: currentUser, postValue:0, postDeductionValue:0),
           // Search(),
-          Menu(currentUser: currentUser),
+          // Menu(currentUser: currentUser),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
         physics: NeverScrollableScrollPhysics(),
       ),
-
-      bottomNavigationBar: CupertinoTabBar(
-      
-          currentIndex: pageIndex,
-          onTap: onTap,
-          activeColor: Theme.of(context).primaryColor,
-      
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home)),
-            BottomNavigationBarItem(icon: Icon(Icons.history)),
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.add_box,
-                size: 35.0,
-                
-              ),
-            ),
-            // BottomNavigationBarItem(icon: Icon(Icons.search,color: Colors.transparent,)),
-            BottomNavigationBarItem(icon: Icon(Icons.menu)),
-          ]),
+      // bottomNavigationBar: CupertinoTabBar(
+      //   backgroundColor: Color(0xFF000000),
+      //     currentIndex: pageIndex,
+      //     onTap: onTap,
+      //     activeColor: Theme.of(context).accentColor,
+      //     items: [
+      //       BottomNavigationBarItem(icon: Icon(Icons.home, color: Color(0xFF000000),)),
+      //       // BottomNavigationBarItem(icon: Icon(Icons.history)),
+      //       // BottomNavigationBarItem(
+      //       //   icon: Icon(
+      //       //     Icons.add_box,
+      //       //     size: 35.0,
+      //       //   ),
+      //       // ),
+      //       // BottomNavigationBarItem(icon: Icon(Icons.search,color: Colors.transparent,)),
+      //       BottomNavigationBarItem(icon: Icon(Icons.menu)),
+      //     ]),
     );
-    // return RaisedButton(
-    //   child: Text('Logout'),
-    //   onPressed: logout,
-    // );
   }
 
   Scaffold buildSpalshScreen() {
-
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-               Colors.black,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
                 Colors.black,
-              Theme.of(context).primaryColor,
-            ],
+                Colors.black,
+                Theme.of(context).primaryColor,
+              ],
+            ),
           ),
-        ),
-        child:ListView(
-           children: <Widget>[
+          child: ListView(children: <Widget>[
             Container(
               alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            GestureDetector(
-              child: Container(
-                width: 260.0,
-                height: 360.0,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'assets/images/standfor.png',
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    child: Container(
+                      width: 260.0,
+                      height: 360.0,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(
+                            'assets/images/standfor.png',
+                          ),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                    fit: BoxFit.cover,
                   ),
-                ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 120.0),
+                  ),
+                  CircularProgressIndicator(
+                    valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ],
               ),
-            ),
-            Padding(padding: EdgeInsets.only(top:120.0),),
-             CircularProgressIndicator(
-                      valueColor:
-                          new AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-          ],
-        ),
-            ) 
-           ]
-        )
-        
-      ),
+            )
+          ])),
     );
-    // return Scaffold(
-    //   body: Stack(
-    //     fit: StackFit.expand,
-    //     children: <Widget>[
-    //       Container(
-    //         decoration: BoxDecoration(
-    //           gradient: LinearGradient(
-    //             begin: Alignment.topRight,
-    //             end: Alignment.bottomLeft,
-    //             colors: [
-    //               Theme.of(context).accentColor,
-    //               Theme.of(context).primaryColor,
-    //             ],
-    //           ),
-    //         ),
-    //       ),
-    //       Column(
-    //         mainAxisAlignment: MainAxisAlignment.start,
-    //         children: <Widget>[
-    //           Expanded(
-    //             flex: 2,
-    //             child: Container(
-    //               child: Column(
-    //                 mainAxisAlignment: MainAxisAlignment.center,
-    //                 children: <Widget>[
-    //                   CircleAvatar(
-    //                     backgroundColor: Colors.white,
-    //                     radius: 50.0,
-    //                     backgroundImage:
-    //                         AssetImage('assets/images/standfor.png'),
-    //                   ),
-    //                   Padding(
-    //                     padding: EdgeInsets.only(top: 10.0),
-    //                   ),
-    //                   Text(
-    //                     "STAND IV",
-    //                     style: TextStyle(
-    //                         color: Colors.white,
-    //                         fontWeight: FontWeight.bold,
-    //                         fontSize: 24.0),
-    //                   )
-    //                 ],
-    //               ),
-    //             ),
-    //           ),
-    //           Expanded(
-    //             flex: 1,
-    //             child: Column(
-    //               mainAxisAlignment: MainAxisAlignment.center,
-    //               children: <Widget>[
-    //                 CircularProgressIndicator(
-    //                   valueColor:
-    //                       new AlwaysStoppedAnimation<Color>(Colors.white),
-    //                 ),
-    //                 Padding(
-    //                   padding: EdgeInsets.only(top: 20.0),
-    //                 ),
-    //                 // Text(
-    //                 //   Flutkart.store,
-    //                 //   softWrap: true,
-    //                 //   textAlign: TextAlign.center,
-    //                 //   style: TextStyle(
-    //                 //       fontWeight: FontWeight.bold,
-    //                 //       fontSize: 18.0,
-    //                 //       color: Colors.white),
-    //                 // )
-    //               ],
-    //             ),
-    //           )
-    //         ],
-    //       )
-    //     ],
-    //   ),
-    // );
   }
 
   Scaffold buildUnAuthScreen() {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-               Colors.black,
-                Colors.black,
-              Theme.of(context).primaryColor,
-            ],
-          ),
-        ),
-        child:ListView(
-           children: <Widget>[
-            Container(
-              alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            GestureDetector(
-              child: Container(
-                width: 260.0,
-                height: 360.0,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'assets/images/standfor.png',
+      backgroundColor: Color(0xFF000000),
+      body: showOtpScreen == "No"
+          ? Container(
+              child: ListView(children: <Widget>[
+                Container(
+                  padding: EdgeInsets.only(top:20.0),
+                  height: 255.0,
+                  child: Image(image: 
+                 AssetImage('assets/images/standiv-logo.png',
+                 )
+                ),
+                ),
+              Container(
+                padding: EdgeInsets.only(top: 20.0),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                        width: 376.0,
+                        padding: EdgeInsets.only(
+                            top: 12.0, left: 20.0, right: 50.0, bottom: 12.0),
+                        child: Text(
+                          "ENTER PHONE NUMBER",
+                          style:
+                              TextStyle(color: Color(0xFFFFFFFF), fontSize: 12),
+                        )),
+                    Container(
+                      padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                      width: 377.0,
+                      child: Column(
+                        children: <Widget>[
+                          TextField(
+                            style: TextStyle(
+                                height: 0.1, color: Color(0xFFA2A2A2)),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFF212121),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              hintStyle: TextStyle(color: Color(0xFFA2A2A2)),
+                              hintText: "Enter Phone Number",
+                              prefix: Padding(
+                                padding: EdgeInsets.all(4),
+                                child: Text('+91'),
+                              ),
+                            ),
+                            onChanged: (value) {
+                              this.tempPhone = value;
+                              this.phoneNo = "+91" + value;
+                            },
+                            maxLength: 10,
+                            keyboardType: TextInputType.number,
+                          )
+                        ],
+                      ),
                     ),
-                    fit: BoxFit.cover,
-                  ),
+                    GestureDetector(
+                      onTap: verifyPhone,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 20.0, right: 20.0),
+                        height: 45.0,
+                        width: 356.0,
+                        decoration: BoxDecoration(
+                            color: Color(0xFFEFEBEB),
+                            borderRadius: BorderRadius.circular(23.0),
+                            border: Border.all(
+                                color: Color(0xFFCC3333), width: 3.0)),
+                        child: Center(
+                          child: Text(
+                            "Submit",
+                            style: TextStyle(
+                                color: Color(0xFF000000),
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-
-            // GestureDetector(
-            //   onTap: login,
-            //   child: Container(
-            //     width: 260.0,
-            //     height: 40.0,
-            //     decoration: BoxDecoration(
-            //       image: DecorationImage(
-            //         image: AssetImage(
-            //           'assets/images/google_signin_button.png',
-            //         ),
-            //         fit: BoxFit.cover,
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            // Padding(
-            // padding: EdgeInsets.only(
-            //                 top: 12.0,bottom:12.0),
-            //                 child:Center(
-            //                   child:Text("OR", style:TextStyle(color:Colors.white))
-            //                 )            ),
-                            Container(
-  padding: EdgeInsets.only(top:12.0, left:50.0,right:50.0, bottom:12.0),
-  child: Column(
-    children: <Widget>[
-      TextField(
-         style: TextStyle(
-      height: 0.1,
-      color: Colors.black                  
-    ),
-        decoration: InputDecoration(
-           filled: true,
-  fillColor: Colors.white,
-  border: OutlineInputBorder(
-  borderRadius: BorderRadius.circular(10.0),
-  ),
-  hintStyle: TextStyle(color: Colors.black),
-                // labelStyle: TextStyle(color: Colors.blue[800], fontSize: 30.0, fontWeight: FontWeight.bold),
-                hintText: "Enter Phone Number", 
-          // labelText: 'Phone Number',
-           prefix: Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Text('+91'),
-                  ),
-        ),
-         onChanged: (value) {
-                    this.tempPhone = value;
-                    this.phoneNo ="+91"+ value;
-                  },
-        maxLength: 10,
-        keyboardType: TextInputType.number,
-      )
-    ],
-  ),
-),
-            GestureDetector(
-                  onTap: verifyPhone,
-                  child: Container(
-                    height: 40.0,
-                    width: 150.0,
-                    decoration: BoxDecoration(
-                      color:Colors.blue[800],
-                      borderRadius: BorderRadius.circular(7.0),
+              Container(
+                padding: EdgeInsets.only(top: 230.0, left: 30.0, right: 30.0),
+                child: Text(
+                  "By signing up you indicate that you have read and agreed to the Patch Terms of Service",
+                  style: TextStyle(color: Color(0xFF727C8E), fontSize: 14.0),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            ]))
+          : Container(
+              padding: EdgeInsets.only(top: 60.0),
+              child: Column(children: <Widget>[
+                GestureDetector(
+                    onTap: () => back(),
+                    child: Container(
+                        padding: EdgeInsets.only(left: 20.0),
+                        width: 377.0,
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_back_ios,
+                              color: Color(0xFFB3B3B3),
+                            ),
+                            Text(
+                              "back",
+                              style: TextStyle(
+                                  color: Color(0xFFB3B3B3),
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ))),
+                Container(
+                  padding: EdgeInsets.only(top: 30.0, left: 30.0, right: 30.0),
+                  // width: 370.0,
+                  child: Center(
+                      child: Text(
+                    "We have sent an OTP to your Mobile",
+                    style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 25.0),
+                    textAlign: TextAlign.center,
+                  )),
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 30.0, left: 30.0, right: 30.0),
+                  child: Center(
+                    child: Text(
+                      "Please check your mobile number  continue to reset your password",
+                      style:
+                          TextStyle(color: Color(0xFFA2A2A2), fontSize: 14.0),
+                      textAlign: TextAlign.center,
                     ),
+                  ),
+                ),
+                Container(
+                    padding:
+                        EdgeInsets.only(top: 30.0, left: 30.0, right: 30.0),
+                    child: TextField(
+                      style:
+                          TextStyle(color: Color(0xB3FFFFFF), fontSize: 18.0),
+                      decoration: const InputDecoration(
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: Colors.grey, width: 0.0),
+                        ),
+                        focusedBorder: const UnderlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: Colors.grey, width: 0.0),
+                        ),
+                        labelText: 'Enter OTP',
+                        labelStyle:
+                            TextStyle(color: Color(0xB3FFFFFF), fontSize: 18.0),
+                      ),
+                      onChanged: (value) {
+                        this.smsCode = value;
+                      },
+                    )),
+                Container(
+                    padding: EdgeInsets.only(top: 60.0, right: 30.0),
+                    // width: 370.0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          child: Text(
+                            "Didn't Receive?    ",
+                            style: TextStyle(
+                                color: Color(0xFF7C7D7E), fontSize: 14.0),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        GestureDetector(
+                            onTap: verifyPhone,
+                            child: Text(
+                              "Click Here",
+                              style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            )),
+                      ],
+                    )),
+                Padding(padding: EdgeInsets.all(40)),
+                GestureDetector(
+                  onTap: () => next(),
+                  child: Container(
+                    height: 45.0,
+                    width: 112.67,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(23.0),
+                        border:
+                            Border.all(color: Color(0xFFB3B3B3), width: 3.0)),
                     child: Center(
                       child: Text(
-                        "Submit",
+                        "Next",
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFFFFFFFF),
                             fontSize: 18.0,
                             fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
                 ),
-
-
-
-          ],
-        ),
-            ) 
-           ]
-        )
-        
-      ),
+              ])),
     );
   }
 
@@ -734,6 +771,8 @@ handleSignIn();
   Widget build(BuildContext context) {
     return isAuth == ""
         ? buildSpalshScreen()
-        : isAuth == "true" ? buildAuthScreen() : buildUnAuthScreen();
+        : isAuth == "true"
+            ? buildAuthScreen()
+            : buildUnAuthScreen();
   }
 }
